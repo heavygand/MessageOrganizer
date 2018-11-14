@@ -1,18 +1,16 @@
-package de.uniks.studyright.util;
-
 import de.uniks.networkparser.interfaces.SendableEntityCreator;
-import de.uniks.studyright.Room;
+import de.uniks.studyright.#####;
 import de.uniks.studyright.University;
 import de.uniks.networkparser.IdMap;
 
 
-public class RoomCreator implements SendableEntityCreator
+public class #####Creator implements SendableEntityCreator
 {
 
    private final String[] properties = new String[]
    {
-      Room.PROPERTY_ROOMNO,
-      Room.PROPERTY_UNI,
+      #####.PROPERTY_RoomNO,
+      #####.PROPERTY_UNI,
    };
 
    @Override
@@ -24,16 +22,16 @@ public class RoomCreator implements SendableEntityCreator
    @Override
    public Object getSendableInstance(boolean prototyp)
    {
-      return new Room();
+      return new #####();
    }
 
    @Override
    public Object getValue(Object entity, String attribute)
    {
-      if(attribute == null || entity instanceof Room == false) {
+      if(attribute == null || entity instanceof ##### == false) {
           return null;
       }
-      Room element = (Room)entity;
+      ##### element = (#####)entity;
       int pos = attribute.indexOf('.');
       String attrName = attribute;
 
@@ -45,12 +43,12 @@ public class RoomCreator implements SendableEntityCreator
          return null;
       }
 
-      if (Room.PROPERTY_ROOMNO.equalsIgnoreCase(attrName))
+      if (#####.PROPERTY_RoomNO.equalsIgnoreCase(attrName))
       {
-         return element.getRoomNo();
+         return element.getRoomNO();
       }
 
-      if (Room.PROPERTY_UNI.equalsIgnoreCase(attrName))
+      if (#####.PROPERTY_UNI.equalsIgnoreCase(attrName))
       {
          return element.getUni();
       }
@@ -61,22 +59,22 @@ public class RoomCreator implements SendableEntityCreator
    @Override
    public boolean setValue(Object entity, String attribute, Object value, String type)
    {
-      if(attribute == null || entity instanceof Room == false) {
+      if(attribute == null || entity instanceof ##### == false) {
           return false;
       }
-      Room element = (Room)entity;
+      ##### element = (#####)entity;
       if (SendableEntityCreator.REMOVE.equals(type) && value != null)
       {
          attribute = attribute + type;
       }
 
-      if (Room.PROPERTY_ROOMNO.equalsIgnoreCase(attribute))
+      if (#####.PROPERTY_RoomNO.equalsIgnoreCase(attribute))
       {
-         element.setRoomNo((String) value);
+         element.setRoomNO((String) value);
          return true;
       }
 
-      if (Room.PROPERTY_UNI.equalsIgnoreCase(attribute))
+      if (#####.PROPERTY_UNI.equalsIgnoreCase(attribute))
       {
          element.setUni((University) value);
          return true;

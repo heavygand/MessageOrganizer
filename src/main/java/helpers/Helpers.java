@@ -25,11 +25,23 @@ public class Helpers {
 			reader.close();
 		}
 	}
+	public static byte[] readAllBytes(String file) {
+		
+		byte[] readAllBytes = null;
+		try {
+			readAllBytes = Files.readAllBytes(Paths.get(file)) ;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return readAllBytes;
+	}
+	public static byte[] readAllBytes(File file) {
 
-	/**
-	 * @param file
-	 * @return 
-	 */
+		return readAllBytes(file.getPath());
+	}
+	
 	public static String readFile(File file) {
 		
 		return readFile(file.getPath());
@@ -98,5 +110,51 @@ public class Helpers {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	public static Class getClass(String string) {
+
+		Class cls = null;
+		try {
+			cls = Class.forName(string);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return cls;
+	}
+
+	public static Object newInstance(Class newClass) {
+
+		try {
+			return newClass.newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static String getClassName(String key) {
+
+		return "de.ks.messageOrg.model."+(key.charAt(0)+"").toUpperCase()+key.substring(1, key.length()-1);
+	}
+
+	public static String getCreatorName(String key) {
+
+		return "de.ks.messageOrg.model.util."+cutOffCharsAtEnd(getUpperFirst(key), 1)+"Creator";
+	}
+	
+	public static String cutOffCharsAtEnd(String input, int i) {
+
+		return input.substring(0, input.length()-i);
+	}
+
+	public static String getUpperFirst(String input) {
+		
+		return (input.charAt(0)+"").toUpperCase()+input.substring(1);
 	}
 }

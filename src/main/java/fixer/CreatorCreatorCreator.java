@@ -5,11 +5,11 @@ import java.util.List;
 
 import helpers.Helpers;
 
-public class Fixer {
+public class CreatorCreatorCreator {
 
 	public static void main(String[] args) {
 		
-		File folder = new File("C:/Users/erikd/MyControlWorkspace/MessageOrganizer/src/main/java/model");
+		File folder = new File("C:/Users/erikd/MyControlWorkspace//MessageOrganizer/src/main/java/de/ks/messageOrg/model/util/CreatorCreator.java");
 		File[] listOfFiles = folder.listFiles();
 		
 		for (File file : listOfFiles) {
@@ -34,5 +34,10 @@ public class Fixer {
 				Helpers.writeToFile(lines, file);
 			}
 		}
+	}
+	
+	public static String getText() {
+		
+		return "";
 	}
 }

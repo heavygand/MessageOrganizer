@@ -1,18 +1,15 @@
-package de.uniks.studyright.util;
+package de.ks.messageOrg.model.util;
 
 import de.uniks.networkparser.interfaces.SendableEntityCreator;
-import de.uniks.studyright.Room;
-import de.uniks.studyright.University;
 import de.uniks.networkparser.IdMap;
+import de.ks.messageOrg.model.Participant;
 
-
-public class RoomCreator implements SendableEntityCreator
-{
-
+public class ParticipantCreator implements SendableEntityCreator {
+    
    private final String[] properties = new String[]
    {
-      Room.PROPERTY_ROOMNO,
-      Room.PROPERTY_UNI,
+      Participant.PROPERTY_NAME,
+      
    };
 
    @Override
@@ -24,16 +21,16 @@ public class RoomCreator implements SendableEntityCreator
    @Override
    public Object getSendableInstance(boolean prototyp)
    {
-      return new Room();
+      return new Participant();
    }
 
    @Override
    public Object getValue(Object entity, String attribute)
    {
-      if(attribute == null || entity instanceof Room == false) {
+      if(attribute == null || entity instanceof Participant == false) {
           return null;
       }
-      Room element = (Room)entity;
+      Participant element = (Participant)entity;
       int pos = attribute.indexOf('.');
       String attrName = attribute;
 
@@ -45,15 +42,11 @@ public class RoomCreator implements SendableEntityCreator
          return null;
       }
 
-      if (Room.PROPERTY_ROOMNO.equalsIgnoreCase(attrName))
+      if (Participant.PROPERTY_NAME.equalsIgnoreCase(attrName))
       {
-         return element.getRoomNo();
+          return element.getName();
       }
-
-      if (Room.PROPERTY_UNI.equalsIgnoreCase(attrName))
-      {
-         return element.getUni();
-      }
+      
 
       return null;
    }
@@ -61,26 +54,21 @@ public class RoomCreator implements SendableEntityCreator
    @Override
    public boolean setValue(Object entity, String attribute, Object value, String type)
    {
-      if(attribute == null || entity instanceof Room == false) {
+      if(attribute == null || entity instanceof Participant == false) {
           return false;
       }
-      Room element = (Room)entity;
+      Participant element = (Participant)entity;
       if (SendableEntityCreator.REMOVE.equals(type) && value != null)
       {
          attribute = attribute + type;
       }
 
-      if (Room.PROPERTY_ROOMNO.equalsIgnoreCase(attribute))
+      if (Participant.PROPERTY_NAME.equalsIgnoreCase(attribute))
       {
-         element.setRoomNo((String) value);
-         return true;
+          element.setName((String) value);
+          return true;
       }
-
-      if (Room.PROPERTY_UNI.equalsIgnoreCase(attribute))
-      {
-         element.setUni((University) value);
-         return true;
-      }
+      
 
       return false;
    }
