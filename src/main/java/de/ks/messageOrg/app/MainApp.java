@@ -7,6 +7,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.text.DateFormatter;
 
@@ -29,17 +31,20 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+@SuppressWarnings("restriction")
 public class MainApp extends Application {
 
 	private static String				inboxPath		= "C:\\Users\\erikd\\Downloads\\messages\\inbox";
 	private static String				friendsPath		= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
 	private static String				ausnahmePath	= "./docs/ausgenommen";
+	private static String				blackListPath	= "./docs/blacklist";
+	private static String				cyPath			= "./docs/CY.txt";
 	private static ArrayList<Person>	persons			= new ArrayList<Person>();
 	private static ArrayList<String>	friends			= new ArrayList<String>();
 	private static ArrayList<Handler>	handlers		= new ArrayList<>();
 	private static Person				currentPerson;
 	private static ObservableList<Node> userList;
-	private static Label anzeige;
+	private static Label 				anzeige;
 
 	public static void main(String[] args) {
 
@@ -57,16 +62,19 @@ public class MainApp extends Application {
 		handlers.add(new PersonHandler());
 	}
 
-	public static void buildUp(VBox vBox, Label anzeige) {
+	public static void showAll(VBox vBox) {
+
+		userList = vBox.getChildren();
 		
-		if(persons.isEmpty()) init(vBox, anzeige);
-		
-		showAll();
+		persons.forEach(person -> {
+			
+			addToList(person);
+		});
 	}
 
-	public static void showUnwritten() {
+	public static void showUnwritten(VBox vBox) {
 
-		userList.removeAll(userList);
+		userList = vBox.getChildren();
 		
 		persons.forEach(person -> {
 			
@@ -75,13 +83,11 @@ public class MainApp extends Application {
 				addToList(person);
 			}
 		});
-		
-		anzeige.setText(userList.size() + " Personen");
 	}
 
-	public static void showWritten() {
+	public static void showWritten(VBox vBox) {
 
-		userList.removeAll(userList);
+		userList = vBox.getChildren();
 		
 		ArrayList<String> notOk = new ArrayList<>();
 		
@@ -97,12 +103,11 @@ public class MainApp extends Application {
 				addToList(person);
 			}
 		});
-		
-		anzeige.setText(userList.size() + " Personen");
 	}
 
-	public static void showGroup() {
-		
+	public static void showGroup(VBox vBox) {
+
+		userList = vBox.getChildren();
 		ArrayList<String> ok = new ArrayList<>();
 		ArrayList<String> notOk = new ArrayList<>();
 		
@@ -112,6 +117,53 @@ public class MainApp extends Application {
 		notOk.add("https://youtu.be/gJxp4loJyyA");
 
 		addPeopleWithRightMessages(ok, notOk);
+	}
+	
+	public static void showVideo(VBox vBox) {
+		
+		userList = vBox.getChildren();
+		ArrayList<String> ok = new ArrayList<>();
+		ArrayList<String> notOk = new ArrayList<>();
+		
+		ok.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
+		ok.add("https://youtu.be/opBGuztAvtw");
+		ok.add("https://youtu.be/gJxp4loJyyA");
+		
+		addPeopleWithRightMessages(ok, notOk);
+	}
+
+	public static void showInGroup(VBox vBox) {
+
+		userList = vBox.getChildren();
+		ArrayList<String> ok = new ArrayList<>();
+		ArrayList<String> notOk = new ArrayList<>();
+		
+		ok.add("https://www.facebook.com/groups/197111937786655/");
+		notOk.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
+		notOk.add("https://youtu.be/opBGuztAvtw");
+		notOk.add("https://youtu.be/gJxp4loJyyA");
+		
+		H.getLines(cyPath).forEach(line -> {
+			
+			Person person = getPerson(line);
+			
+			if(person == null) System.out.println(line + " war null");
+			
+			if(person != null && checkContain(ok, person) && !checkContain(notOk, person)) {
+				
+				addToList(person);
+			}
+		});
+	}
+
+	private static Person getPerson(String name) {
+
+		for (Person person : persons) {
+			
+			if(person.getTitle().equals(name)) return person;
+		}
+		
+		return null;
 	}
 
 	/**
@@ -127,8 +179,6 @@ public class MainApp extends Application {
 			
 			if(checkContain(okList, person) && !checkContain(notOkList, person)) addToList(person);
 		});
-		
-		anzeige.setText(userList.size() + " Personen");
 	}
 
 	/**
@@ -149,34 +199,7 @@ public class MainApp extends Application {
 		return contains;
 	}
 
-	public static void showVideo() {
-
-		ArrayList<String> ok = new ArrayList<>();
-		ArrayList<String> notOk = new ArrayList<>();
-		
-		ok.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
-		ok.add("https://youtu.be/opBGuztAvtw");
-		ok.add("https://youtu.be/gJxp4loJyyA");
-
-		addPeopleWithRightMessages(ok, notOk);
-	}
-
-	private static void showAll() {
-
-		userList.removeAll(userList);
-		
-		persons.forEach(person -> {
-			
-			addToList(person);
-		});
-		
-		anzeige.setText(userList.size() + " Personen");
-	}
-
-	private static void init(VBox vBox, Label anzeige2) {
-
-		anzeige = anzeige2;
-		userList = vBox.getChildren();
+	private static void readData() {
 		
 		getFriends();
 
@@ -188,8 +211,7 @@ public class MainApp extends Application {
 	 */
 	private static void getFriends() {
 
-		File friendsFile = new File(friendsPath);
-		String friendsText = H.readFile(friendsFile);
+		String friendsText = H.readFile(friendsPath);
 		
 		JSONObject jsonArrObj = new JSONObject(friendsText);
 		JSONArray jsonArr = jsonArrObj.getJSONArray("friends");
@@ -198,7 +220,8 @@ public class MainApp extends Application {
 			
 			JSONObject fjo = (JSONObject) friendObj;
 			String friendString = fjo.get("name").toString();
-			friends.add(friendString);
+			
+			friends.add(H.cleanUp(friendString));
 		});
 	}
 
@@ -215,17 +238,16 @@ public class MainApp extends Application {
 			
 			JSONObject jsonObj = new JSONObject(H.readFile(node.getPath() + "\\message.json"));
 			
-			if (	!jsonObj.has("title") ||
-					isAusnahme(jsonObj.get("title").toString()) ||
-					!friends.contains(jsonObj.get("title").toString())
+			if (	!jsonObj.has("title")) continue;
+			String title = H.cleanUp(jsonObj.get("title").toString());
+			if ( 	isAusnahme(title) ||
+					!friends.contains(title)
 					) continue;
 			
 			Person newPerson = new Person();
 			setCurrentPerson(newPerson);
 			readAttributes(jsonObj);
 			persons.add(newPerson);
-			
-			addToList(newPerson);
 		}
 	}
 
@@ -285,6 +307,7 @@ public class MainApp extends Application {
 				handle(key, jsonObj.getJSONArray(key));
 			}
 			else {
+				
 				PersonCreator ps = new PersonCreator();
 				ps.setValue(currentPerson, key, jsonObj.get(key), null);
 			}
@@ -319,7 +342,8 @@ public class MainApp extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-
+		
+		readData();
 		startWindow(primaryStage, getParameters().getUnnamed().get(0));
 		
 	}
@@ -338,5 +362,35 @@ public class MainApp extends Application {
 		stage.setScene(scene);
 		stage.show();
 		
+		refreshAnzeige();
+	}
+
+
+	/**
+	 * @return the anzeige
+	 */
+	public static Label getAnzeige() {
+	
+		return anzeige;
+	}
+
+	
+	/**
+	 * @param anzeige the anzeige to set
+	 */
+	public static void setAnzeige(Label anzeige) {
+	
+		MainApp.anzeige = anzeige;
+	}
+	
+	private void refreshAnzeige() {
+		
+		anzeige.setText(userList.size() + " Personen");
+	}
+
+	public static void refreshAnzeige(VBox vBox) {
+
+		userList = vBox.getChildren();
+		anzeige.setText(userList.size() + " Personen");
 	}
 }

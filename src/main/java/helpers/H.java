@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.json.JSONException;
@@ -113,6 +115,19 @@ public class H {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static String cleanUp(String data) {
+
+		Pattern p = Pattern.compile("\\\\u(\\p{XDigit}{4})");
+		Matcher m = p.matcher(data);
+		StringBuffer buf = new StringBuffer(data.length());
+		while (m.find()) {
+			String ch = String.valueOf((char) Integer.parseInt(m.group(1), 16));
+			m.appendReplacement(buf, Matcher.quoteReplacement(ch));
+		}
+		m.appendTail(buf);
+		return buf.toString();
 	}
 	public static Class getClass(String string) {
 
