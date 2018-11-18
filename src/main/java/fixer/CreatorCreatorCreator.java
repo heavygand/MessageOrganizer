@@ -3,7 +3,7 @@ package fixer;
 import java.io.File;
 import java.util.List;
 
-import helpers.Helpers;
+import helpers.H;
 
 public class CreatorCreatorCreator {
 
@@ -18,9 +18,9 @@ public class CreatorCreatorCreator {
 				
 				System.out.println(file.getName());
 				
-				String fileContent = Helpers.readFile(file);
+				String fileContent = H.readFile(file);
 				
-				List<String> lines = Helpers.getLines(file);
+				List<String> lines = H.getLines(file);
 				
 				for (String line : lines) {
 					
@@ -31,7 +31,7 @@ public class CreatorCreatorCreator {
 					}
 				}			
 				
-				Helpers.writeToFile(lines, file);
+				H.writeToFile(lines, file);
 			}
 		}
 	}

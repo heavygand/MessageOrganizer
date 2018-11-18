@@ -2,6 +2,7 @@ package de.ks.messageOrg.model;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.HashSet;
 
 public class Person extends Node {
 
@@ -10,7 +11,17 @@ public class Person extends Node {
     private String thread_type;
     private String thread_path;
     
-    
+    public HashSet<Message> getMessages() {
+    	
+    	HashSet<Message> messages = new HashSet<>();
+    	
+    	getKid().forEach(kid -> {
+    		
+    		if(kid instanceof Message) messages.add((Message)kid);
+    	});
+    	
+    	return messages;
+    }
     
     /**
     *   F I E L D  TITLE

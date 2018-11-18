@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<Pane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <HBox focusTraversable="true" prefHeight="728.0" prefWidth="915.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <ScrollPane id="scrollTeil" prefHeight="728.0" prefWidth="772.0">
+               <content>
+                  <VBox id="wtf" focusTraversable="true" prefHeight="223.0" prefWidth="739.0" />
+               </content>
+            </ScrollPane>
+            <VBox prefHeight="728.0" prefWidth="191.0">
+               <children>
+                  <Button id="read" mnemonicParsing="false" prefHeight="78.0" prefWidth="144.0" text="Alle">
+                     <font>
+                        <Font name="System Bold" size="27.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </Button>
+                  <Button id="unwritten" mnemonicParsing="false" prefHeight="78.0" prefWidth="144.0" text="Unangeschr.">
+                     <font>
+                        <Font name="System Bold" size="19.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </Button>
+                  <Button id="written" layoutX="15.0" layoutY="103.0" mnemonicParsing="false" prefHeight="78.0" prefWidth="144.0" text="Angeschr.">
+                     <font>
+                        <Font name="System Bold" size="19.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </Button>
+                  <Button id="group" layoutX="15.0" layoutY="191.0" mnemonicParsing="false" prefHeight="78.0" prefWidth="144.0" text="Gruppe">
+                     <font>
+                        <Font name="System Bold" size="19.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </Button>
+                  <Button id="video" layoutX="15.0" layoutY="279.0" mnemonicParsing="false" prefHeight="78.0" prefWidth="144.0" text="Video">
+                     <font>
+                        <Font name="System Bold" size="19.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </Button>
+                  <Label id="tf">
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </Label>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </children>
+</Pane>

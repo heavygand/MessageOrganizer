@@ -6,7 +6,11 @@ import java.beans.PropertyChangeSupport;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class MessageHandler extends Handler {
+import de.ks.messageOrg.app.MainApp;
+import de.ks.messageOrg.model.Message;
+import de.ks.messageOrg.model.util.MessageCreator;
+
+public class MessageHandler implements Handler {
 
     
     
@@ -15,24 +19,38 @@ public class MessageHandler extends Handler {
     
     //                          Operations
     
-    public boolean handle(String key, Object value) {
+    public boolean handle(String key, JSONArray jSONArray) {
         
-    	if(key.equals("messages")) {
+    	if(!key.equals("messages")) return false;
+    	
+    	jSONArray.forEach(str -> {
     		
-    		String valueString = value.toString();
+    		Message newMessage = new Message();
+        	
+    		JSONObject messageData = (JSONObject)str;
     		
-    		System.out.println(valueString.toString());
+    		setAttributes(newMessage, messageData);
     		
-			JSONArray json = new JSONArray(valueString);
-			json.forEach(jsonObj -> {
-
-	    		System.out.println(jsonObj.toString());
-			});
-    		
-    		return true;
-    	}
-    	return false;
+    		MainApp.getCurrentPerson().withKid(newMessage);
+    	});
+		
+		return true;
     }
+
+	/**
+	 * @param message
+	 * @param mc
+	 * @param messageObject
+	 */
+	private void setAttributes(Message message, JSONObject messageObject) {
+		
+		MessageCreator mc = new MessageCreator();
+
+		messageObject.keys().forEachRemaining(messObjKey -> {
+			
+			mc.setValue(message, messObjKey, messageObject.get(messObjKey), null);
+		});
+	}
     
     
 /**

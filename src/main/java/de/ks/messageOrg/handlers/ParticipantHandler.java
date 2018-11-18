@@ -3,7 +3,16 @@ package de.ks.messageOrg.handlers;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public class ParticipantHandler extends Handler {
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import de.ks.messageOrg.app.MainApp;
+import de.ks.messageOrg.model.Message;
+import de.ks.messageOrg.model.Participant;
+import de.ks.messageOrg.model.util.MessageCreator;
+import de.ks.messageOrg.model.util.ParticipantCreator;
+
+public class ParticipantHandler implements Handler {
 
     
     
@@ -12,15 +21,38 @@ public class ParticipantHandler extends Handler {
     
     //                          Operations
     
-    public boolean handle(String key, Object value) {
+    public boolean handle(String key, JSONArray jSONArray) {
         
-    	if(		key.equals("participants") ||
-    			key.equals("name")) {
+    	if(!key.equals("participants")) return false;
+    	
+    	jSONArray.forEach(str -> {
     		
-    		return true;
-    	}
-    	return false;
+    		Participant newParticipant = new Participant();
+        	
+    		JSONObject participantData = (JSONObject)str;
+    		
+    		setAttributes(newParticipant, participantData);
+    		
+    		MainApp.getCurrentPerson().withKid(newParticipant);
+    	});
+		
+		return true;
     }
+
+	/**
+	 * @param participant
+	 * @param mc
+	 * @param participantObject
+	 */
+	private void setAttributes(Participant participant, JSONObject participantObject) {
+		
+		ParticipantCreator pc = new ParticipantCreator();
+
+		participantObject.keys().forEachRemaining(partObjKey -> {
+			
+			pc.setValue(participant, partObjKey, participantObject.get(partObjKey), null);
+		});
+	}
     
     
 /**

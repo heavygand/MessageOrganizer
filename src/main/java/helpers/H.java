@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class Helpers {
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class H {
 
 	private static String readFileKacke(String file) throws IOException {
 
@@ -25,7 +28,7 @@ public class Helpers {
 			reader.close();
 		}
 	}
-	public static byte[] readAllBytes(String file) {
+	private static byte[] readAllBytes(String file) {
 		
 		byte[] readAllBytes = null;
 		try {
@@ -37,7 +40,7 @@ public class Helpers {
 		
 		return readAllBytes;
 	}
-	public static byte[] readAllBytes(File file) {
+	private static byte[] readAllBytes(File file) {
 
 		return readAllBytes(file.getPath());
 	}
@@ -156,5 +159,16 @@ public class Helpers {
 	public static String getUpperFirst(String input) {
 		
 		return (input.charAt(0)+"").toUpperCase()+input.substring(1);
+	}
+
+	public static boolean isJsonArray(JSONObject jsonObj, String key) {
+
+		try {
+			jsonObj.getJSONArray(key);
+		} catch (JSONException e) {
+			
+			return false;
+		}
+		return true;
 	}
 }

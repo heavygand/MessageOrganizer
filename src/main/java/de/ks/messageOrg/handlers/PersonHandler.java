@@ -3,10 +3,12 @@ package de.ks.messageOrg.handlers;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import org.json.JSONArray;
+
 import de.ks.messageOrg.app.MainApp;
 import de.ks.messageOrg.model.util.PersonCreator;
 
-public class PersonHandler extends Handler {
+public class PersonHandler implements Handler {
 
     
     
@@ -15,7 +17,7 @@ public class PersonHandler extends Handler {
     
     //                          Operations
     
-    public boolean handle(String key, Object value) {
+    public boolean handle(String key, JSONArray value) {
         
     	if(		key.equals("is_still_participant") ||
     			key.equals("thread_type") ||
