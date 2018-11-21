@@ -119,15 +119,21 @@ public class H {
 
 	public static String cleanUp(String data) {
 
-		Pattern p = Pattern.compile("\\\\u(\\p{XDigit}{4})");
-		Matcher m = p.matcher(data);
-		StringBuffer buf = new StringBuffer(data.length());
-		while (m.find()) {
-			String ch = String.valueOf((char) Integer.parseInt(m.group(1), 16));
-			m.appendReplacement(buf, Matcher.quoteReplacement(ch));
+		String result = null;
+		try {
+			result = new String(data.getBytes("ISO-8859-1"), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		m.appendTail(buf);
-		return buf.toString();
+		
+//		if (!data.equals(result)) {
+//			
+//			System.out.println(data);
+//			System.out.println("wurde geändert zu");
+//			System.out.println(result);
+//		}
+		return result;
 	}
 	public static Class getClass(String string) {
 

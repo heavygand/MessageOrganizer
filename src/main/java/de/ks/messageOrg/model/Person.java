@@ -4,7 +4,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashSet;
 
-public class Person extends Node {
+public class Person extends Node{
 
     private String title;
     private boolean is_still_participant;
@@ -22,6 +22,18 @@ public class Person extends Node {
     	
     	return messages;
     }
+
+	@Override
+	public int compareTo(Object o) {
+
+		if(o instanceof Person) return compareTo((Person) o);
+		return 0;
+	}
+
+	public int compareTo(Person otherPerson) {
+
+		return getTitle().compareTo(otherPerson.getTitle());
+	}
     
     /**
     *   F I E L D  TITLE

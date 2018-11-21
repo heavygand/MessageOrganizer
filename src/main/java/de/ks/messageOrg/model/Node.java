@@ -5,7 +5,7 @@ import java.beans.PropertyChangeSupport;
 import java.util.Set;
 import java.util.HashSet;
 
-public class Node {
+public class Node implements Comparable{
 
     private Set<Node> kid;
     
@@ -134,4 +134,11 @@ public class Node {
     	
        return listeners;
     }
+
+	@Override
+	public int compareTo(Object o) {
+
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

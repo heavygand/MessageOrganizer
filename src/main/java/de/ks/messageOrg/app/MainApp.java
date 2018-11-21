@@ -1,7 +1,6 @@
 ﻿package de.ks.messageOrg.app;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -40,7 +39,6 @@ public class MainApp extends Application {
 	private static String				blackListPath	= "./docs/blacklist";
 	private static String				cyPath			= "./docs/CY.txt";
 	private static ArrayList<Person>	persons			= new ArrayList<Person>();
-	private static ArrayList<String>	friends			= new ArrayList<String>();
 	private static ArrayList<Handler>	handlers		= new ArrayList<>();
 	private static Person				currentPerson;
 	private static ObservableList<Node> userList;
@@ -65,7 +63,7 @@ public class MainApp extends Application {
 	public static void showAll(VBox vBox) {
 
 		userList = vBox.getChildren();
-		
+
 		persons.forEach(person -> {
 			
 			addToList(person);
@@ -78,11 +76,25 @@ public class MainApp extends Application {
 		
 		persons.forEach(person -> {
 			
-			if(person.getMessages().size() == 1) {
+			if(!hasMessageFromMe(person)) {
 				
 				addToList(person);
 			}
 		});
+	}
+
+	/**
+	 * @param person
+	 * @return
+	 */
+	private static boolean hasMessageFromMe(Person person) {
+		
+		for (Message message : person.getMessages()) {
+			
+			if(message.getSender_name().equals("Christian Wiegand")) return true;
+		}
+		
+		return false;
 	}
 
 	public static void showWritten(VBox vBox) {
@@ -98,7 +110,7 @@ public class MainApp extends Application {
 		
 		persons.forEach(person -> {
 			
-			if(person.getMessages().size() > 1 && !checkContain(notOk, person)) {
+			if(hasMessageFromMe(person) && !checkContain(notOk, person)) {
 				
 				addToList(person);
 			}
@@ -143,16 +155,26 @@ public class MainApp extends Application {
 		notOk.add("https://youtu.be/opBGuztAvtw");
 		notOk.add("https://youtu.be/gJxp4loJyyA");
 		
+		ArrayList<Person> personList = new ArrayList<>();
+		
 		H.getLines(cyPath).forEach(line -> {
 			
 			Person person = getPerson(line);
 			
-			if(person == null) System.out.println(line + " war null");
+			if(person == null && isAusnahme(line)) {} //System.out.println(line + " ist ausnahme");
+			else if(person == null) System.out.println(line + " ist null");
 			
 			if(person != null && checkContain(ok, person) && !checkContain(notOk, person)) {
 				
-				addToList(person);
+				personList.add(person);
 			}
+		});
+		
+		Collections.sort(personList);
+		
+		personList.forEach(person -> {			
+			
+			addToList(person);
 		});
 	}
 
@@ -182,6 +204,8 @@ public class MainApp extends Application {
 	}
 
 	/**
+	 * Checks if the messages of this person contain one of the strings
+	 * 
 	 * @param list
 	 * @param person
 	 * @return
@@ -219,9 +243,12 @@ public class MainApp extends Application {
 		jsonArr.forEach(friendObj -> {
 			
 			JSONObject fjo = (JSONObject) friendObj;
-			String friendString = fjo.get("name").toString();
+			String friendString = H.cleanUp(fjo.get("name").toString());
 			
-			friends.add(H.cleanUp(friendString));
+			if (!isAusnahme(friendString)) {
+				
+				persons.add(new Person().withTitle(friendString));
+			}
 		});
 	}
 
@@ -240,23 +267,31 @@ public class MainApp extends Application {
 			
 			if (	!jsonObj.has("title")) continue;
 			String title = H.cleanUp(jsonObj.get("title").toString());
-			if ( 	isAusnahme(title) ||
-					!friends.contains(title)
-					) continue;
+			if (isAusnahme(title)) continue;
 			
-			Person newPerson = new Person();
-			setCurrentPerson(newPerson);
+			Person thisPerson = getPerson(title);
+			
+			if(thisPerson == null) {
+				
+//				System.out.println(title + " war null in getMessages()");
+				continue;
+			}
+			
+			setCurrentPerson(thisPerson);
 			readAttributes(jsonObj);
-			persons.add(newPerson);
 		}
+		
+		Collections.sort(persons);
 	}
 
 	private static boolean isAusnahme(String name) {
 
 		File ausnahmeFile = new File(ausnahmePath);
 		
-		for (String line : H.getLines(ausnahmeFile)) {
+		for (String kackLine : H.getLines(ausnahmeFile)) {
 
+			String line = H.cleanUp(kackLine);
+			
 			if(line.equals(name)) return true;
 		}
 		
@@ -275,7 +310,15 @@ public class MainApp extends Application {
 		label.setPrefWidth(200);
 		personBox.getChildren().add(label);
 
-		long timeStampLong = ((Message)person.getMessages().toArray()[0]).getTimestamp_ms();
+		long timeStampLong;
+		if (person.getMessages().isEmpty()) {
+
+			timeStampLong = 0;
+		}
+		else {
+
+			timeStampLong = getFirstMessage(person).getTimestamp_ms();
+		}
         Timestamp timeStamp = new Timestamp(timeStampLong);  
         LocalDateTime triggerTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timeStamp.getTime()), TimeZone.getDefault().toZoneId());
         String formattedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm", Locale.GERMAN).format(triggerTime);
@@ -294,6 +337,12 @@ public class MainApp extends Application {
 			tf.setPrefWidth(300);
 			children.set(indexOf, tf);
 		});
+	}
+
+	private static Message getFirstMessage(Person person) {
+
+		
+		return ((Message)person.getMessages().toArray()[0]);
 	}
 
 	/**
