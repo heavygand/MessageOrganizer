@@ -3,12 +3,17 @@ package helpers;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.apache.tika.parser.txt.CharsetDetector;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -116,9 +121,35 @@ public class H {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void writeToFile(JSONObject jsonObj, String path) {
+		
+		PrintWriter out = null;
+		try {
+			out = new PrintWriter(path);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String jsonText = jsonObj.toString(2);
+		
+		out.print(jsonText);
+		out.close();
+	}
 
 	public static String cleanUp(String data) {
-
+		
+		CharsetDetector detector = new CharsetDetector();
+		detector.setText(data.getBytes());
+		String charSetName = detector.detect().getName();
+		
+		if (charSetName.equals("ISO-8859-1")) {
+			
+//			System.out.println(data + " muss nicht umgewandelt werden.");
+			return data;
+		}
+		
 		String result = null;
 		try {
 			result = new String(data.getBytes("ISO-8859-1"), "UTF-8");
@@ -191,5 +222,92 @@ public class H {
 			return false;
 		}
 		return true;
+	}
+
+	/*
+	 * 
+	 * DATUMSZEUG
+	 * 
+	 */
+	public static LocalDateTime getLocalDateTime(Timestamp timeStamp) {
+
+		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeStamp.getTime()), TimeZone.getDefault().toZoneId());
+	}
+
+	public static LocalDateTime getLocalDateTime(long timeStamp) {
+
+		return getLocalDateTime(new Timestamp(timeStamp));
+	}
+
+	public static LocalDateTime getLocalDate(long timeStamp) {
+
+		return getLocalDateTime(new Timestamp(timeStamp));
+	}
+
+	public static LocalDateTime getLocalHour(long timeStamp) {
+
+		return getLocalDateTime(new Timestamp(timeStamp));
+	}
+	
+	public static String getGermanDateTimeString(LocalDateTime triggerTime) {
+
+		return DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMAN).format(triggerTime);
+	}
+	
+	public static String getGermanDateString(LocalDateTime triggerTime) {
+
+		return DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMAN).format(triggerTime);
+	}
+	
+	public static String getGermanHourString(LocalDateTime triggerTime) {
+
+		return DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN).format(triggerTime);
+	}
+	
+	public static String getGermanDateTimeString(Timestamp timeStamp) {
+
+		return getGermanDateTimeString(getLocalDateTime(timeStamp));
+	}
+	
+	public static String getGermanDateTimeString(long timeStamp) {
+
+		return getGermanDateTimeString(getLocalDateTime(timeStamp));
+	}
+	
+	public static String getGermanDateString(long timeStamp) {
+
+		return getGermanDateString(getLocalDate(timeStamp));
+	}
+	
+	public static String getGermanHourString(long timeStamp) {
+
+		return getGermanHourString(getLocalHour(timeStamp));
+	}
+	
+	public static int getSeconds(long milliseconds) {
+		
+		return (int)TimeUnit.MILLISECONDS.toSeconds(milliseconds);
+	}
+	
+	public static int getMinutes(long milliseconds) {
+		
+		return (int)TimeUnit.MILLISECONDS.toMinutes(milliseconds);
+	}
+	
+	public static int getHours(long milliseconds) {
+		
+		return (int)TimeUnit.MILLISECONDS.toHours(milliseconds);
+	}
+	
+	public static int getDays(long milliseconds) {
+		
+		return (int)TimeUnit.MILLISECONDS.toDays(milliseconds);
+	}
+
+	public static int getDayDifference(long time1, long time2) {
+
+		long difference = Math.abs(time1 - time2);
+		
+		return getDays(difference);
 	}
 }

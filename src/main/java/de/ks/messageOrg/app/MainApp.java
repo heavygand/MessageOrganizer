@@ -2,6 +2,7 @@
 
 import java.io.*;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,14 +38,21 @@ public class MainApp extends Application {
 	private static String				friendsPath		= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
 	private static String				ausnahmePath	= "./docs/ausgenommen";
 	private static String				blackListPath	= "./docs/blacklist";
+	private static String				properiesPath	= "./docs/properties";
 	private static String				cyPath			= "./docs/CY.txt";
 	private static ArrayList<Person>	persons			= new ArrayList<Person>();
 	private static ArrayList<Handler>	handlers		= new ArrayList<>();
 	private static Person				currentPerson;
-	private static ObservableList<Node> userList;
+	private static ObservableList<Node> currentUserList;
 	private static Label 				anzeige;
+	private final int 					daysBack		= 3;
+	private Stage stage;
+	private static MainApp appInstance;
+	private static long starttime;
 
 	public static void main(String[] args) {
+		
+		starttime = System.currentTimeMillis();
 
 		initHandlers();
 		launch("gui.fxml");
@@ -62,23 +70,23 @@ public class MainApp extends Application {
 
 	public static void showAll(VBox vBox) {
 
-		userList = vBox.getChildren();
+		currentUserList = vBox.getChildren();
 
 		persons.forEach(person -> {
 			
-			addToList(person);
+			addToCurrentGUIList(person.getState(), person);
 		});
 	}
 
 	public static void showUnwritten(VBox vBox) {
 
-		userList = vBox.getChildren();
+		currentUserList = vBox.getChildren();
 		
 		persons.forEach(person -> {
 			
 			if(!hasMessageFromMe(person)) {
 				
-				addToList(person);
+				addToCurrentGUIList(vBox.getId(), person);
 			}
 		});
 	}
@@ -99,7 +107,7 @@ public class MainApp extends Application {
 
 	public static void showWritten(VBox vBox) {
 
-		userList = vBox.getChildren();
+		currentUserList = vBox.getChildren();
 		
 		ArrayList<String> notOk = new ArrayList<>();
 		
@@ -112,14 +120,14 @@ public class MainApp extends Application {
 			
 			if(hasMessageFromMe(person) && !checkContain(notOk, person)) {
 				
-				addToList(person);
+				addToCurrentGUIList(vBox.getId(), person);
 			}
 		});
 	}
 
 	public static void showGroup(VBox vBox) {
 
-		userList = vBox.getChildren();
+		currentUserList = vBox.getChildren();
 		ArrayList<String> ok = new ArrayList<>();
 		ArrayList<String> notOk = new ArrayList<>();
 		
@@ -128,12 +136,12 @@ public class MainApp extends Application {
 		notOk.add("https://youtu.be/opBGuztAvtw");
 		notOk.add("https://youtu.be/gJxp4loJyyA");
 
-		addPeopleWithRightMessages(ok, notOk);
+		addPeopleWithRightMessages(vBox.getId(), ok, notOk);
 	}
 	
 	public static void showVideo(VBox vBox) {
 		
-		userList = vBox.getChildren();
+		currentUserList = vBox.getChildren();
 		ArrayList<String> ok = new ArrayList<>();
 		ArrayList<String> notOk = new ArrayList<>();
 		
@@ -141,12 +149,15 @@ public class MainApp extends Application {
 		ok.add("https://youtu.be/opBGuztAvtw");
 		ok.add("https://youtu.be/gJxp4loJyyA");
 		
-		addPeopleWithRightMessages(ok, notOk);
+		addPeopleWithRightMessages(vBox.getId(), ok, notOk);
 	}
 
 	public static void showInGroup(VBox vBox) {
+		
+		long newStarttime = System.currentTimeMillis();
+		System.out.println("Lese CY Gruppenmitglieder ein...");
 
-		userList = vBox.getChildren();
+		currentUserList = vBox.getChildren();
 		ArrayList<String> ok = new ArrayList<>();
 		ArrayList<String> notOk = new ArrayList<>();
 		
@@ -159,10 +170,10 @@ public class MainApp extends Application {
 		
 		H.getLines(cyPath).forEach(line -> {
 			
-			Person person = getPerson(line);
+			Person person = getPersonInPersonList(line);
 			
 			if(person == null && isAusnahme(line)) {} //System.out.println(line + " ist ausnahme");
-			else if(person == null) System.out.println(line + " ist null");
+			else if(person == null) System.out.println(line + " ist nicht bei den Personen, aber in der CY Gruppe");
 			
 			if(person != null && checkContain(ok, person) && !checkContain(notOk, person)) {
 				
@@ -174,11 +185,29 @@ public class MainApp extends Application {
 		
 		personList.forEach(person -> {			
 			
-			addToList(person);
+			addToCurrentGUIList(vBox.getId(), person);
+		});
+		
+		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
+	}
+
+	public static void showNachzufassen(VBox vBox) {
+
+		currentUserList = vBox.getChildren();
+
+        long currentTime = System.currentTimeMillis();
+		
+		persons.forEach(person -> {
+			
+			// TODO DAS HIER IST NOCH NICHT KORREKT, NACHFASSEN MUSS HEUTE ODER FRÜHER SEIN
+			if(person.getNachfassen() != 0 && H.getDayDifference(person.getNachfassen(), currentTime) >= 0) {
+				
+				addToCurrentGUIList(vBox.getId(), person);
+			}
 		});
 	}
 
-	private static Person getPerson(String name) {
+	private static Person getPersonInPersonList(String name) {
 
 		for (Person person : persons) {
 			
@@ -193,13 +222,13 @@ public class MainApp extends Application {
 	 * @param okList 
 	 * 
 	 */
-	private static void addPeopleWithRightMessages(ArrayList<String> okList, ArrayList<String> notOkList) {
+	private static void addPeopleWithRightMessages(String status, ArrayList<String> okList, ArrayList<String> notOkList) {
 
-		userList.removeAll(userList);
+		currentUserList.removeAll(currentUserList);
 		
 		persons.forEach(person -> {
 			
-			if(checkContain(okList, person) && !checkContain(notOkList, person)) addToList(person);
+			if(checkContain(okList, person) && !checkContain(notOkList, person)) addToCurrentGUIList(status, person);
 		});
 	}
 
@@ -223,17 +252,28 @@ public class MainApp extends Application {
 		return contains;
 	}
 
-	private static void readData() {
-		
-		getFriends();
+	private static void readTextFilesForInitialization() {
 
-		getMessages();
+		starttime = System.currentTimeMillis();
+		System.out.println("Lese Freunde ein...");
+		readFriendsFromFile();
+		System.out.println("Freunde hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
+
+		starttime = System.currentTimeMillis();
+		System.out.println("Lese Messages ein...");
+		readMessagesFromFile();
+		System.out.println("Messages hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
+
+		starttime = System.currentTimeMillis();
+		System.out.println("Lese Properties ein...");
+		readPropertiesFromFile();
+		System.out.println("Properties hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
 	}
 
 	/**
 	 * 
 	 */
-	private static void getFriends() {
+	private static void readFriendsFromFile() {
 
 		String friendsText = H.readFile(friendsPath);
 		
@@ -247,7 +287,11 @@ public class MainApp extends Application {
 			
 			if (!isAusnahme(friendString)) {
 				
-				persons.add(new Person().withTitle(friendString));
+				long friendsSince = (long) (int)fjo.get("timestamp");
+				Person newPerson = new Person().withTitle(friendString);
+				newPerson.setFriendsSince(friendsSince*1000);
+				
+				persons.add(newPerson);
 			}
 		});
 	}
@@ -255,7 +299,7 @@ public class MainApp extends Application {
 	/**
 	 * 
 	 */
-	private static void getMessages() {
+	private static void readMessagesFromFile() {
 
 		File folder = new File(inboxPath);
 		File[] listOfFiles = folder.listFiles();
@@ -265,11 +309,11 @@ public class MainApp extends Application {
 			
 			JSONObject jsonObj = new JSONObject(H.readFile(node.getPath() + "\\message.json"));
 			
-			if (	!jsonObj.has("title")) continue;
+			if (!jsonObj.has("title")) continue;
 			String title = H.cleanUp(jsonObj.get("title").toString());
 			if (isAusnahme(title)) continue;
 			
-			Person thisPerson = getPerson(title);
+			Person thisPerson = getPersonInPersonList(title);
 			
 			if(thisPerson == null) {
 				
@@ -278,10 +322,45 @@ public class MainApp extends Application {
 			}
 			
 			setCurrentPerson(thisPerson);
-			readAttributes(jsonObj);
+			readMessageFileAttributes(jsonObj);
 		}
 		
 		Collections.sort(persons);
+	}
+
+	private static void readPropertiesFromFile() {
+
+		String properties = H.readFile(properiesPath);
+		
+		JSONObject jsonObj = new JSONObject(properties);
+		JSONArray jsonArr = jsonObj.getJSONArray("properties");
+		
+		for(Object propertyObj : jsonArr){
+			
+			JSONObject propertyJsonObj = (JSONObject) propertyObj;
+			String name = H.cleanUp(propertyJsonObj.get("name").toString());
+			
+			Person person = getPersonInPersonList(name);
+			
+			if(person == null) {
+				
+				System.out.println(name + " war nicht bei den Personen, aber in der property Liste");
+				continue;
+			}
+			
+			propertyJsonObj.keys().forEachRemaining(key -> {
+				
+				if(key.equals("nachfassen")) {
+					
+					person.setNachfassen(propertyJsonObj.getLong(key));
+				}
+				
+				if(key.equals("notes")) {
+					
+					person.setNotes(propertyJsonObj.getString(key));
+				}
+			});
+		}
 	}
 
 	private static boolean isAusnahme(String name) {
@@ -298,30 +377,27 @@ public class MainApp extends Application {
 		return false;
 	}
 
-	private static void addToList(Person person) {
+	private static void addToCurrentGUIList(String status, Person person) {
 		
 		HBox personBox = new HBox();
 		personBox.setPrefHeight(32);
 		personBox.setPrefWidth(600);
-		userList.add(personBox);
+		currentUserList.add(personBox);
 		
 		String name = person.getTitle();
 		Label label = new Label(name);
 		label.setPrefWidth(200);
 		personBox.getChildren().add(label);
 
-		long timeStampLong;
-		if (person.getMessages().isEmpty()) {
+		long timeStampLongFirst = person.getMessages().isEmpty() ? 0 : getFirstMessage(person).getTimestamp_ms();        
+        person.setFirstContact(timeStampLongFirst);
 
-			timeStampLong = 0;
-		}
-		else {
-
-			timeStampLong = getFirstMessage(person).getTimestamp_ms();
-		}
-        Timestamp timeStamp = new Timestamp(timeStampLong);  
-        LocalDateTime triggerTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timeStamp.getTime()), TimeZone.getDefault().toZoneId());
-        String formattedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm", Locale.GERMAN).format(triggerTime);
+		long timeStampLongLast = person.getMessages().isEmpty() ? 0 : getLastMessage(person).getTimestamp_ms();        
+        person.setLastContact(timeStampLongLast);
+        
+        String formattedDate = H.getGermanDateTimeString(timeStampLongFirst);
+        
+        if(timeStampLongFirst == 0) formattedDate = "";
         
         Label dateLabel = new Label(formattedDate);
         dateLabel.setPrefWidth(300);
@@ -329,30 +405,53 @@ public class MainApp extends Application {
 		
 		label.setOnMouseClicked(e -> {
 			
-			ObservableList<Node> children = personBox.getChildren();
-			int indexOf = children.indexOf(label);
-			Node node = children.get(indexOf);
-			TextField tf = new TextField();
-			tf.setText(name);
-			tf.setPrefWidth(300);
-			children.set(indexOf, tf);
+			person.setState(status);
+			appInstance.showPerson(person);
 		});
+	}
+
+	private void showPerson(Person person) {
+		
+		String name = person.getTitle();
+
+		Pane pane = null;
+		try {
+			pane = FXMLLoader.load(getClass().getResource("personWindow.fxml"));
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+        Stage stage = new Stage();
+        stage.setTitle("Eigenschaften von " + name);
+        Scene scene = new Scene(pane, 1200, 900);
+		stage.setScene(scene);
+		GuiController.initPersonWindow(scene, person);
+        stage.show();
+	}
+
+	private static Message getLastMessage(Person person) {
+
+		ArrayList<Message> messages = person.getMessages();
+		return messages.get(0);
 	}
 
 	private static Message getFirstMessage(Person person) {
 
-		
-		return ((Message)person.getMessages().toArray()[0]);
+		ArrayList<Message> messages = person.getMessages();
+		return messages.get(messages.size()-1);
 	}
 
 	/**
 	 * @param jsonObj
 	 * @param newPerson
 	 */
-	private static void readAttributes(JSONObject jsonObj) {
+	private static void readMessageFileAttributes(JSONObject jsonObj) {
 
 		jsonObj.keys().forEachRemaining(key -> {
+			
 			if (H.isJsonArray(jsonObj, key)) {
+				
 				handle(key, jsonObj.getJSONArray(key));
 			}
 			else {
@@ -392,12 +491,21 @@ public class MainApp extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		readData();
-		startWindow(primaryStage, getParameters().getUnnamed().get(0));
+		readTextFilesForInitialization();
+
+		starttime = System.currentTimeMillis();
+		System.out.println("Baue GUI auf...");
 		
+		stage = primaryStage;
+		
+		startWindow(getParameters().getUnnamed().get(0));
+
+		System.out.println("GUI hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert (incl CY)");
 	}
 
-	private void startWindow(Stage stage, String fxmlName) {
+	private void startWindow(String fxmlName) {
+		
+		appInstance = this;
 
 		Pane pane = null;
 		try {
@@ -406,8 +514,9 @@ public class MainApp extends Application {
 			e.printStackTrace();
 		}
 		Scene scene = new Scene(pane);
+		stage.setTitle("Message Organizer");
 		scene.setUserData(fxmlName);
-		GuiController.doStuff(scene);
+		GuiController.initMainWindow(scene);
 		stage.setScene(scene);
 		stage.show();
 		
@@ -427,19 +536,50 @@ public class MainApp extends Application {
 	/**
 	 * @param anzeige the anzeige to set
 	 */
-	public static void setAnzeige(Label anzeige) {
+	public static void setPersonenAnzahlAnzeige(Label anzeige) {
 	
 		MainApp.anzeige = anzeige;
 	}
 	
 	private void refreshAnzeige() {
 		
-		anzeige.setText(userList.size() + " Personen");
+		anzeige.setText(currentUserList.size() + " Personen");
 	}
 
 	public static void refreshAnzeige(VBox vBox) {
 
-		userList = vBox.getChildren();
-		anzeige.setText(userList.size() + " Personen");
+		currentUserList = vBox.getChildren();
+		anzeige.setText(currentUserList.size() + " Personen");
+	}
+
+	public static void savePersonNotes(Person person, TextArea notesArea) {
+
+		String notes = notesArea.getText();
+		
+		person.setNotes(notes);
+		
+		writeBackProperties();
+	}
+
+	private static void writeBackProperties() {
+		
+		JSONObject rootObj = new JSONObject();
+		JSONArray propertiesArray = new JSONArray();
+		rootObj.put("properties", propertiesArray);
+
+		persons.forEach(person -> {
+			
+			if(person.hasProperties()) {
+
+				JSONObject jsonObj = new JSONObject();
+				jsonObj.put("name", person.getTitle());
+				jsonObj.put("nachfassen", person.getNachfassen());
+				jsonObj.put("notes", person.getNotes());
+				
+				propertiesArray.put(jsonObj);
+			}
+		});
+		
+		H.writeToFile(rootObj, properiesPath);
 	}
 }

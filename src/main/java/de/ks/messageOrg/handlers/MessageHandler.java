@@ -2,6 +2,7 @@ package de.ks.messageOrg.handlers;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,6 +24,8 @@ public class MessageHandler implements Handler {
         
     	if(!key.equals("messages")) return false;
     	
+    	ArrayList<Message> messages = new ArrayList<>();
+    	
     	jSONArray.forEach(str -> {
     		
     		Message newMessage = new Message();
@@ -31,8 +34,10 @@ public class MessageHandler implements Handler {
     		
     		setAttributes(newMessage, messageData);
     		
-    		MainApp.getCurrentPerson().withKid(newMessage);
+    		messages.add(newMessage);
     	});
+    	
+    	MainApp.getCurrentPerson().setMessages(messages);
 		
 		return true;
     }

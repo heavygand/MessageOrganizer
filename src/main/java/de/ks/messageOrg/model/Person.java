@@ -2,7 +2,8 @@ package de.ks.messageOrg.model;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.HashSet;
+import java.sql.Timestamp;
+import java.util.*;
 
 public class Person extends Node{
 
@@ -10,18 +11,17 @@ public class Person extends Node{
     private boolean is_still_participant;
     private String thread_type;
     private String thread_path;
+    private ArrayList<Message> messages = new ArrayList<>();
     
-    public HashSet<Message> getMessages() {
-    	
-    	HashSet<Message> messages = new HashSet<>();
-    	
-    	getKid().forEach(kid -> {
-    		
-    		if(kid instanceof Message) messages.add((Message)kid);
-    	});
+    public ArrayList<Message> getMessages() {
     	
     	return messages;
     }
+
+	public void setMessages(ArrayList<Message> messages) {
+
+		this.messages = messages;
+	}
 
 	@Override
 	public int compareTo(Object o) {
@@ -124,7 +124,98 @@ public class Person extends Node{
         return this;
     }
     
+    private long firstContact;
+
+	public long getFirstContact() {
+
+		return firstContact;
+	}
+
+	public void setFirstContact(long date) {
+
+		this.firstContact = date;
+	}
+
     
+    private long friendsSince;
+
+	public long getFriendsSince() {
+
+		return friendsSince;
+	}
+
+	public void setFriendsSince(long date) {
+
+		this.friendsSince = date;
+	}
+
+    
+    private long lastContact;
+
+	public long getLastContact() {
+
+		return lastContact;
+	}
+
+	public void setLastContact(long date) {
+
+		this.lastContact = date;
+	}
+    
+    private long nachfassen;
+
+	public long getNachfassen() {
+
+		return nachfassen;
+	}
+
+	public void setNachfassen(long date) {
+
+		this.nachfassen = date;
+		hasProperties = true;
+	}
+    
+    private String notes;
+
+	public String getNotes() {
+		
+		if(notes == null) return "";
+
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+
+		this.notes = notes;
+		hasProperties = true;
+	}
+
+    private boolean hasProperties = false;
+
+	public boolean hasProperties() {
+
+		return this.hasProperties;
+	}
+
+	public void hasProperties(boolean hasProperties) {
+
+		this.hasProperties = hasProperties;
+	}
+    
+    private String state;
+
+	public String getState() {
+		
+		if(state == null) return "";
+
+		return state;
+	}
+
+	public void setState(String state) {
+
+		this.state = state;
+	}
+	
 /**
 *   PROPERTYCHANGESTUFF
 */

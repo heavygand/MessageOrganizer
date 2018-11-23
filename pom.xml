@@ -37,18 +37,28 @@
 	    <artifactId>SDMLib</artifactId>
 	    <version>2.3.2341</version>
 	</dependency>
+	
 	<!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
 	<dependency>
 	    <groupId>org.jsoup</groupId>
 	    <artifactId>jsoup</artifactId>
 	    <version>1.11.3</version>
 	</dependency>
+	
 	<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
 	<dependency>
 	    <groupId>org.apache.commons</groupId>
 	    <artifactId>commons-lang3</artifactId>
 	    <version>3.8.1</version>
 	</dependency>
+	
+	<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-bundle -->
+	<dependency>
+	    <groupId>org.apache.tika</groupId>
+	    <artifactId>tika-bundle</artifactId>
+	    <version>1.19.1</version>
+	</dependency>
+	
 	
   </dependencies>
 </project>
