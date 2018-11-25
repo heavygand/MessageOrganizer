@@ -1,5 +1,8 @@
 package de.ks.messageOrg.gui;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import de.ks.messageOrg.app.MainApp;
 import de.ks.messageOrg.model.Message;
 import de.ks.messageOrg.model.Person;
@@ -99,8 +102,9 @@ public class GuiController {
 		Label lastContact = (Label) scene.lookup("#lastContact");
 		lastContact.setText(person.getLastContact()==0?"":H.getGermanDateTimeString(person.getLastContact()));
 		
-		Label nachfassenAm = (Label) scene.lookup("#nachfassenAm");
-		nachfassenAm.setText(person.getNachfassen()==0?"":H.getGermanDateString(person.getNachfassen()));
+		DatePicker nachfassenAm = (DatePicker) scene.lookup("#nachfassenAm");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+		if(person.getNachfassen()!=0) nachfassenAm.setValue(LocalDate.parse(H.getGermanDateString(person.getNachfassen()), formatter));
 		
 		Label currentStatus = (Label) scene.lookup("#currentStatus");
 		currentStatus.setText(person.getState());
@@ -110,6 +114,6 @@ public class GuiController {
 		
 		Button saveButton = (Button) scene.lookup("#saveButton");
 		saveButton.setUserData(person);
-		saveButton.setOnAction(e -> MainApp.savePersonNotes((Person)saveButton.getUserData(), notesArea));
+		saveButton.setOnAction(e -> MainApp.savePersonNotes((Person)saveButton.getUserData(), notesArea, nachfassenAm));
 	}
 }

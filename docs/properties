@@ -1,8 +1,13 @@
 {"properties": [
   {
+    "notes": "lol, an meinem geburtstag nachfassen",
+    "name": "Alexander Hötzl",
+    "nachfassen": 563410800000
+  },
+  {
     "notes": "test notiz für Frank Walter",
     "name": "Frank Walter",
-    "nachfassen": 1542241502000
+    "nachfassen": 1542582000000
   },
   {
     "notes": "test notiz für Julius Freund",

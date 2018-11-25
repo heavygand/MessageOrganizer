@@ -11,7 +11,6 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <HBox prefHeight="900.0" prefWidth="1200.0">
@@ -113,14 +112,7 @@
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                            </HBox.margin>
                         </Label>
-                        <Label id="nachfassenAm" prefHeight="36.0" prefWidth="375.0" text="kein Eintrag">
-                           <font>
-                              <Font size="25.0" />
-                           </font>
-                           <HBox.margin>
-                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                           </HBox.margin>
-                        </Label>
+                        <DatePicker id="nachfassenAm" prefHeight="50.0" prefWidth="183.0" promptText="kein Datum" />
                      </children>
                   </HBox>
                   <HBox layoutX="10.0" layoutY="154.0" prefHeight="36.0" prefWidth="600.0">
@@ -161,7 +153,6 @@
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                      </VBox.margin>
                   </Button>
-                  <DatePicker promptText="kein Datum" />
                </children>
             </VBox>
          </children>

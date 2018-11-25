@@ -3,8 +3,7 @@
 import java.io.*;
 import java.sql.Timestamp;
 import java.text.DateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -194,13 +193,10 @@ public class MainApp extends Application {
 	public static void showNachzufassen(VBox vBox) {
 
 		currentUserList = vBox.getChildren();
-
-        long currentTime = System.currentTimeMillis();
 		
 		persons.forEach(person -> {
 			
-			// TODO DAS HIER IST NOCH NICHT KORREKT, NACHFASSEN MUSS HEUTE ODER FRÜHER SEIN
-			if(person.getNachfassen() != 0 && H.getDayDifference(person.getNachfassen(), currentTime) >= 0) {
+			if(person.getNachfassen() != 0 && H.isEarlierOrToday(person.getNachfassen())) {
 				
 				addToCurrentGUIList(vBox.getId(), person);
 			}
@@ -552,11 +548,13 @@ public class MainApp extends Application {
 		anzeige.setText(currentUserList.size() + " Personen");
 	}
 
-	public static void savePersonNotes(Person person, TextArea notesArea) {
+	public static void savePersonNotes(Person person, TextArea notesArea, DatePicker nachfassenAm) {
 
 		String notes = notesArea.getText();
+		LocalDate dpValue = nachfassenAm.getValue();
 		
 		person.setNotes(notes);
+		person.setNachfassen(H.getTimeStampAsLong(dpValue));
 		
 		writeBackProperties();
 	}
@@ -572,7 +570,7 @@ public class MainApp extends Application {
 			if(person.hasProperties()) {
 
 				JSONObject jsonObj = new JSONObject();
-				jsonObj.put("name", person.getTitle());
+				jsonObj.put("name", H.cleanUp(person.getTitle()));
 				jsonObj.put("nachfassen", person.getNachfassen());
 				jsonObj.put("notes", person.getNotes());
 				

@@ -4,8 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -309,5 +308,24 @@ public class H {
 		long difference = Math.abs(time1 - time2);
 		
 		return getDays(difference);
+	}
+
+	public static boolean isEarlierOrToday(long earlierOrToday) {
+
+        long currentTime = System.currentTimeMillis();
+        
+		long substraction = getDays(currentTime) - getDays(earlierOrToday);
+		
+		return substraction >= 0 ? true : false;
+	}
+	
+	public static Timestamp getTimeStamp(LocalDate dpValue) {
+
+		return Timestamp.valueOf(dpValue.atStartOfDay());
+	}
+	
+	public static long getTimeStampAsLong(LocalDate dpValue) {
+
+		return getTimeStamp(dpValue).getTime();
 	}
 }
