@@ -145,9 +145,11 @@ public class H {
 		
 		if (charSetName.equals("ISO-8859-1")) {
 			
-//			System.out.println(data + " muss nicht umgewandelt werden.");
+//			if (data.contains("Alexander H")) {
+//				System.out.println(data + " muss nicht umgewandelt werden.");
+//			}
 			return data;
-		}
+		}		
 		
 		String result = null;
 		try {
@@ -157,11 +159,12 @@ public class H {
 			e.printStackTrace();
 		}
 		
-//		if (!data.equals(result)) {
+//		if (data.contains("Alexander H") && !data.equals(result)) {
 //			
 //			System.out.println(data);
 //			System.out.println("wurde geändert zu");
 //			System.out.println(result);
+//			System.out.println("Charset war " + charSetName);
 //		}
 		return result;
 	}

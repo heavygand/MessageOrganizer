@@ -288,6 +288,8 @@ public class MainApp extends Application {
 				newPerson.setFriendsSince(friendsSince*1000);
 				
 				persons.add(newPerson);
+				
+//				System.out.println(newPerson.getTitle() + " angelegt");
 			}
 		});
 	}
@@ -334,13 +336,14 @@ public class MainApp extends Application {
 		for(Object propertyObj : jsonArr){
 			
 			JSONObject propertyJsonObj = (JSONObject) propertyObj;
-			String name = H.cleanUp(propertyJsonObj.get("name").toString());
+			String name = propertyJsonObj.get("name").toString(); // Achtung, hier wird kein H.cleanUp gemacht, weil ich davon ausgehe, dass es dort immer sauber reingeschrieben wird
 			
 			Person person = getPersonInPersonList(name);
 			
 			if(person == null) {
 				
 				System.out.println(name + " war nicht bei den Personen, aber in der property Liste");
+				
 				continue;
 			}
 			
