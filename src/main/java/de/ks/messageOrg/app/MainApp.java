@@ -151,7 +151,7 @@ public class MainApp extends Application {
 		addPeopleWithRightMessages(vBox.getId(), ok, notOk);
 	}
 
-	public static void showInGroup(VBox vBox) {
+	public static void showInGroup(VBox vBox, VBox vBoxGruppe_verschickt) {
 		
 		long newStarttime = System.currentTimeMillis();
 		System.out.println("Lese CY Gruppenmitglieder ein...");
@@ -185,6 +185,7 @@ public class MainApp extends Application {
 		personList.forEach(person -> {			
 			
 			addToCurrentGUIList(vBox.getId(), person);
+			removeFromGUIList(vBoxGruppe_verschickt, person);
 		});
 		
 		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
@@ -407,6 +408,30 @@ public class MainApp extends Application {
 			person.setState(status);
 			appInstance.showPerson(person);
 		});
+	}
+
+	private static void removeFromGUIList(VBox vBox, Person person) {
+		
+		ArrayList<Object> toRemove = new ArrayList<>();
+
+		ObservableList<Node> children = vBox.getChildren();
+		for(Object personBoxObj : children) {
+			
+			HBox personBox = (HBox) personBoxObj;
+			
+			for(Object obj : personBox.getChildren()) {
+				
+				if(obj instanceof Label && ((Label)obj).getText().equals(person.getTitle())) {
+					
+					toRemove.add(personBoxObj);
+				}
+			}
+		}
+		
+		for(Object obj : toRemove) {
+			
+			children.remove(obj);
+		}
 	}
 
 	private void showPerson(Person person) {

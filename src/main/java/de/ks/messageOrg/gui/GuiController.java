@@ -43,7 +43,7 @@ public class GuiController {
 		MainApp.showGroup(vBoxGruppe_verschickt);
 		
 		VBox vBoxIn_Gruppe = (VBox) scene.lookup("#In_Gruppe");
-		MainApp.showInGroup(vBoxIn_Gruppe);
+		MainApp.showInGroup(vBoxIn_Gruppe, vBoxGruppe_verschickt);
 		
 		VBox vBoxNachfassen = (VBox) scene.lookup("#Nachfassen");
 		MainApp.showNachzufassen(vBoxNachfassen);
