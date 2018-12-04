@@ -16,6 +16,9 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("restriction")
 public class GuiController {
 	
+	private static VBox vBoxGruppe_verschickt;
+	private static VBox vBoxIn_Gruppe;
+
 	public static void initMainWindow(Scene scene) {
 		
 		if (!scene.getUserData().equals("gui.fxml")) return;
@@ -39,10 +42,10 @@ public class GuiController {
 		VBox vBoxAngeschriebene = (VBox) scene.lookup("#Angeschriebene");
 		MainApp.showWritten(vBoxAngeschriebene);
 		
-		VBox vBoxGruppe_verschickt = (VBox) scene.lookup("#Gruppe_verschickt");
+		vBoxGruppe_verschickt = (VBox) scene.lookup("#Gruppe_verschickt");
 		MainApp.showGroup(vBoxGruppe_verschickt);
 		
-		VBox vBoxIn_Gruppe = (VBox) scene.lookup("#In_Gruppe");
+		vBoxIn_Gruppe = (VBox) scene.lookup("#In_Gruppe");
 		MainApp.showInGroup(vBoxIn_Gruppe, vBoxGruppe_verschickt);
 		
 		VBox vBoxNachfassen = (VBox) scene.lookup("#Nachfassen");
@@ -115,5 +118,14 @@ public class GuiController {
 		Button saveButton = (Button) scene.lookup("#saveButton");
 		saveButton.setUserData(person);
 		saveButton.setOnAction(e -> MainApp.savePersonNotes((Person)saveButton.getUserData(), notesArea, nachfassenAm));
+		notesArea.setText(person.getNotes());
+		
+		Button istInGruppeButton = (Button) scene.lookup("#istInGruppeButton");
+		istInGruppeButton.setUserData(person);
+		istInGruppeButton.setOnAction(e -> MainApp.makeGroupMember((Person)istInGruppeButton.getUserData(), vBoxGruppe_verschickt, vBoxIn_Gruppe ) );
+		
+//		Button istKundeButton = (Button) scene.lookup("#istKundeButton");
+//		istKundeButton.setUserData(person);
+//		istKundeButton.setOnAction(e -> MainApp.makeCustomer((Person)istKundeButton.getUserData()));
 	}
 }

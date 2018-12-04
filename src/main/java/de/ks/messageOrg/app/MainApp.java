@@ -48,6 +48,7 @@ public class MainApp extends Application {
 	private Stage stage;
 	private static MainApp appInstance;
 	private static long starttime;
+	private static ArrayList<Person> personListInGroup;
 
 	public static void main(String[] args) {
 		
@@ -165,7 +166,7 @@ public class MainApp extends Application {
 		notOk.add("https://youtu.be/opBGuztAvtw");
 		notOk.add("https://youtu.be/gJxp4loJyyA");
 		
-		ArrayList<Person> personList = new ArrayList<>();
+		personListInGroup = new ArrayList<>();
 		
 		H.getLines(cyPath).forEach(line -> {
 			
@@ -176,19 +177,31 @@ public class MainApp extends Application {
 			
 			if(person != null && checkContain(ok, person) && !checkContain(notOk, person)) {
 				
-				personList.add(person);
+				personListInGroup.add(person);
 			}
 		});
 		
-		Collections.sort(personList);
-		
-		personList.forEach(person -> {			
-			
-			addToCurrentGUIList(vBox.getId(), person);
-			removeFromGUIList(vBoxGruppe_verschickt, person);
-		});
+		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBox);
 		
 		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
+	}
+
+	/**
+	 * @param vBoxTo
+	 * @param vBoxFrom
+	 */
+	@SuppressWarnings("unchecked")
+	private static void buildGUIList4PersonListFromTo(ArrayList<Person> personList, VBox vBoxFrom, VBox vBoxTo) {
+
+		Collections.sort(personList);
+		
+		vBoxTo.getChildren().clear();
+		
+		for(Person person : personList) {			
+			
+			removeFromGUIList(vBoxFrom, person);
+			addToGUIList(vBoxTo, person);
+		}
 	}
 
 	public static void showNachzufassen(VBox vBox) {
@@ -298,6 +311,7 @@ public class MainApp extends Application {
 	/**
 	 * 
 	 */
+	@SuppressWarnings("unchecked")
 	private static void readMessagesFromFile() {
 
 		File folder = new File(inboxPath);
@@ -376,8 +390,19 @@ public class MainApp extends Application {
 		
 		return false;
 	}
-
+	
 	private static void addToCurrentGUIList(String status, Person person) {
+		
+		addToGUIList(currentUserList, person, status);
+	}
+
+	private static void addToGUIList(VBox vBox, Person person) {
+
+		ObservableList<Node> children = vBox.getChildren();
+		addToGUIList(children, person, vBox.getId());
+	}
+
+	private static void addToGUIList(ObservableList<Node> currentUserList, Person person, String status) {
 		
 		HBox personBox = new HBox();
 		personBox.setPrefHeight(32);
@@ -401,7 +426,7 @@ public class MainApp extends Application {
         
         Label dateLabel = new Label(formattedDate);
         dateLabel.setPrefWidth(300);
-        personBox.getChildren().add(dateLabel);        
+        personBox.getChildren().add(dateLabel);
 		
 		label.setOnMouseClicked(e -> {
 			
@@ -607,5 +632,13 @@ public class MainApp extends Application {
 		});
 		
 		H.writeToFile(rootObj, properiesPath);
+	}
+
+	public static void makeGroupMember(Person person, VBox vBoxGruppe_verschickt, VBox vBoxIn_Gruppe) {
+
+		personListInGroup.add(person);
+		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBoxIn_Gruppe);
+		
+		// TODO: Die Person muss aber auch zur physischen Liste hinzugefügt werden
 	}
 }
