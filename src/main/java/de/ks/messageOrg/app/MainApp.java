@@ -639,6 +639,6 @@ public class MainApp extends Application {
 		personListInGroup.add(person);
 		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBoxIn_Gruppe);
 		
-		// TODO: Die Person muss aber auch zur physischen Liste hinzugefügt werden
+		H.appendLineToFile(person.getTitle(), cyPath);
 	}
 }

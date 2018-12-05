@@ -1,8 +1,7 @@
 package helpers;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.sql.Timestamp;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -118,6 +117,30 @@ public class H {
 		}
 		catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public static void appendLineToFile(String line, File file) {
+		
+		String pathString = file.getPath();
+		appendLineToFile(line, pathString);
+	}
+	
+	public static void appendLineToFile(String line, String pathString) {
+		
+		Path path = Paths.get(pathString);
+		appendLineToFile(line, path);
+	}
+	
+	public static void appendLineToFile(String line, Path path) {
+		
+		try (BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.APPEND)) {
+
+		    writer.write("\n");
+		    writer.write(line);
+		}
+		catch (IOException ioe) {
+		    System.err.format("IOException: %s%n", ioe);
 		}
 	}
 	
