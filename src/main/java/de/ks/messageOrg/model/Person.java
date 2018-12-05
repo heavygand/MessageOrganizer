@@ -5,6 +5,8 @@ import java.beans.PropertyChangeSupport;
 import java.sql.Timestamp;
 import java.util.*;
 
+import javafx.scene.control.Label;
+
 public class Person extends Node{
 
     private String title;
@@ -214,6 +216,18 @@ public class Person extends Node{
 	public void setState(String state) {
 
 		this.state = state;
+	}
+	
+	private Label statusLabel;
+
+	public Label getStatusLabel() {
+
+		return statusLabel;
+	}
+
+	public void setStatusLabel(Label currentStatus) {
+
+		statusLabel = currentStatus;
 	}
 	
 /**

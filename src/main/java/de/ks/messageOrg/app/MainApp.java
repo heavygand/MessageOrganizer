@@ -39,6 +39,7 @@ public class MainApp extends Application {
 	private static String				blackListPath	= "./docs/blacklist";
 	private static String				properiesPath	= "./docs/properties";
 	private static String				cyPath			= "./docs/CY.txt";
+	private static String				customersPath	= "./docs/Kunden.txt";
 	private static ArrayList<Person>	persons			= new ArrayList<Person>();
 	private static ArrayList<Handler>	handlers		= new ArrayList<>();
 	private static Person				currentPerson;
@@ -136,7 +137,7 @@ public class MainApp extends Application {
 		notOk.add("https://youtu.be/opBGuztAvtw");
 		notOk.add("https://youtu.be/gJxp4loJyyA");
 
-		addPeopleWithRightMessages(vBox.getId(), ok, notOk);
+		addPeopleWithRightMessagesToCurrentGUIList(vBox.getId(), ok, notOk);
 	}
 	
 	public static void showVideo(VBox vBox) {
@@ -149,15 +150,44 @@ public class MainApp extends Application {
 		ok.add("https://youtu.be/opBGuztAvtw");
 		ok.add("https://youtu.be/gJxp4loJyyA");
 		
-		addPeopleWithRightMessages(vBox.getId(), ok, notOk);
+		addPeopleWithRightMessagesToCurrentGUIList(vBox.getId(), ok, notOk);
 	}
 
-	public static void showInGroup(VBox vBox, VBox vBoxGruppe_verschickt) {
+	public static void showCustomers(VBox vBoxKunden) {
+
+		currentUserList = vBoxKunden.getChildren();
+		ArrayList<String> ok = new ArrayList<>();
+		ArrayList<String> notOk = new ArrayList<>();
+		
+		ArrayList<Person> personListCustomers = new ArrayList<>();
+		
+		vBoxKunden.getChildren().clear();
+		H.getLines(customersPath).forEach(personString -> {
+			
+			Person person = getPersonInPersonList(personString);
+				
+			moveToVBox(person, vBoxKunden);
+		});
+	}
+
+	/**
+	 * @param person
+	 * @param vBoxKunden
+	 */
+	private static void moveToVBox(Person person, VBox vBoxKunden) {
+
+		String state = person.getState();
+		VBox vBoxOld = GuiController.getVBox(state);	
+		removeFromGUIList(vBoxOld, person);
+		addToGUIList(vBoxKunden, person);
+	}
+
+	public static void showInGroup(VBox vBoxInnGroup, VBox vBoxGruppe_verschickt) {
 		
 		long newStarttime = System.currentTimeMillis();
 		System.out.println("Lese CY Gruppenmitglieder ein...");
 
-		currentUserList = vBox.getChildren();
+		currentUserList = vBoxInnGroup.getChildren();
 		ArrayList<String> ok = new ArrayList<>();
 		ArrayList<String> notOk = new ArrayList<>();
 		
@@ -168,22 +198,27 @@ public class MainApp extends Application {
 		
 		personListInGroup = new ArrayList<>();
 		
-		H.getLines(cyPath).forEach(line -> {
+		addPeopleWithRightMessages2ArrayList(personListInGroup, cyPath, vBoxInnGroup, ok, notOk);
+		
+		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBoxInnGroup);
+		
+		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
+	}
+
+	private static void addPeopleWithRightMessages2ArrayList(ArrayList<Person> personList, String path, VBox vBox, ArrayList<String> ok, ArrayList<String> notOk) {
+
+		H.getLines(path).forEach(line -> {
 			
 			Person person = getPersonInPersonList(line);
 			
 			if(person == null && isAusnahme(line)) {} //System.out.println(line + " ist ausnahme");
-			else if(person == null) System.out.println(line + " ist nicht bei den Personen, aber in der CY Gruppe");
+			else if(person == null) System.out.println(line + " ist nicht bei den Personen, aber in " + vBox.getId());
 			
 			if(person != null && checkContain(ok, person) && !checkContain(notOk, person)) {
 				
-				personListInGroup.add(person);
+				personList.add(person);
 			}
 		});
-		
-		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBox);
-		
-		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
 	}
 
 	/**
@@ -212,7 +247,7 @@ public class MainApp extends Application {
 			
 			if(person.getNachfassen() != 0 && H.isEarlierOrToday(person.getNachfassen())) {
 				
-				addToCurrentGUIList(vBox.getId(), person);
+				addToCurrentGUIList(null, person);
 			}
 		});
 	}
@@ -227,18 +262,16 @@ public class MainApp extends Application {
 		return null;
 	}
 
-	/**
-	 * @param notOkList 
-	 * @param okList 
-	 * 
-	 */
-	private static void addPeopleWithRightMessages(String status, ArrayList<String> okList, ArrayList<String> notOkList) {
+	private static void addPeopleWithRightMessagesToCurrentGUIList(String status, ArrayList<String> okList, ArrayList<String> notOkList) {
 
 		currentUserList.removeAll(currentUserList);
 		
 		persons.forEach(person -> {
 			
-			if(checkContain(okList, person) && !checkContain(notOkList, person)) addToCurrentGUIList(status, person);
+			if(checkContain(okList, person) && !checkContain(notOkList, person)) {
+				
+				addToCurrentGUIList(status, person);
+			}
 		});
 	}
 
@@ -427,10 +460,11 @@ public class MainApp extends Application {
         Label dateLabel = new Label(formattedDate);
         dateLabel.setPrefWidth(300);
         personBox.getChildren().add(dateLabel);
-		
+        
+        if (status != null) person.setState(status);
+        
 		label.setOnMouseClicked(e -> {
 			
-			person.setState(status);
 			appInstance.showPerson(person);
 		});
 	}
@@ -640,5 +674,15 @@ public class MainApp extends Application {
 		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBoxIn_Gruppe);
 		
 		H.appendLineToFile(person.getTitle(), cyPath);
+	}
+
+	public static void makeCustomer(Person person, VBox vBoxKunden) {
+
+		moveToVBox(person, vBoxKunden);
+		
+		person.setState(vBoxKunden.getId());
+		person.getStatusLabel().setText(vBoxKunden.getId());
+		
+		H.appendLineToFile(person.getTitle(), customersPath);
 	}
 }

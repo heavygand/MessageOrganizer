@@ -18,9 +18,12 @@ public class GuiController {
 	
 	private static VBox vBoxGruppe_verschickt;
 	private static VBox vBoxIn_Gruppe;
+	private static Scene mainScene;
+	private static VBox vBoxKunden;
 
 	public static void initMainWindow(Scene scene) {
 		
+		mainScene = scene;
 		if (!scene.getUserData().equals("gui.fxml")) return;
 
 		ToolBar toolbar = (ToolBar) scene.lookup("#toolbar");
@@ -56,6 +59,9 @@ public class GuiController {
 		
 		VBox vBoxAlle = (VBox) scene.lookup("#Alle");
 		MainApp.showAll(vBoxAlle);
+		
+		vBoxKunden = (VBox) scene.lookup("#Kunden");
+		MainApp.showCustomers(vBoxKunden);
 		
 //		c = new Counter();
 //		c.getPropertyChangeSupport().addPropertyChangeListener(c.PROPERTY_NUMBER, (a) -> {
@@ -111,6 +117,7 @@ public class GuiController {
 		
 		Label currentStatus = (Label) scene.lookup("#currentStatus");
 		currentStatus.setText(person.getState());
+		person.setStatusLabel(currentStatus);
 		
 		TextArea notesArea = (TextArea) scene.lookup("#notesArea");
 		notesArea.setText(person.getNotes());
@@ -124,8 +131,14 @@ public class GuiController {
 		istInGruppeButton.setUserData(person);
 		istInGruppeButton.setOnAction(e -> MainApp.makeGroupMember((Person)istInGruppeButton.getUserData(), vBoxGruppe_verschickt, vBoxIn_Gruppe ) );
 		
-//		Button istKundeButton = (Button) scene.lookup("#istKundeButton");
-//		istKundeButton.setUserData(person);
-//		istKundeButton.setOnAction(e -> MainApp.makeCustomer((Person)istKundeButton.getUserData()));
+		Button istKundeButton = (Button) scene.lookup("#istKundeButton");
+		istKundeButton.setUserData(person);
+		istKundeButton.setOnAction(e -> MainApp.makeCustomer((Person)istKundeButton.getUserData(), vBoxKunden));
+	}
+
+	public static VBox getVBox(String state) {
+
+//		System.out.println("Suche #" + state + " in der GUI");
+		return (VBox) mainScene.lookup("#"+state);
 	}
 }

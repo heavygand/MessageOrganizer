@@ -58,6 +58,11 @@
                         <VBox id="Nachfassen" prefHeight="200.0" prefWidth="100.0" />
                      </content>
                   </Tab>
+                  <Tab id="KundenTab" text="Kunden">
+                     <content>
+                        <VBox id="Kunden" prefHeight="200.0" prefWidth="100.0" />
+                     </content>
+                  </Tab>
               </tabs>
             </TabPane>
          </children>
