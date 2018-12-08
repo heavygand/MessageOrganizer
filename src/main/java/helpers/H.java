@@ -39,7 +39,6 @@ public class H {
 		try {
 			readAllBytes = Files.readAllBytes(Paths.get(file)) ;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -93,24 +92,36 @@ public class H {
 		return getLines(file.getPath());
 	}
 	
-	public static void writeToFile(List<String> lines, File file) {
+	public static void overWriteFileWithList(List<String> lines, String path) {
+		
+		overWriteFileWithList(lines, new File(path));
+	}
+	
+	public static void overWriteFileWithList(List<String> lines, File file) {
 		
 		FileWriter writer = null;
 		try {
 			writer = new FileWriter(file);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		for(String str: lines) {
+		for( int i = 0 ; i < lines.size() ; i++) {
 		  try {
+			
+			String str = lines.get(i);
 			writer.write(str);
-			writer.write("\n");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
+			
+			if (i != lines.size()-1) {
+				
+				writer.write("\n");
+			}
+		  }
+		  catch (IOException e) {
+			  
 			e.printStackTrace();
-		}
+		  }
 		}
 		try {
 			writer.close();
@@ -139,18 +150,38 @@ public class H {
 		    writer.write("\n");
 		    writer.write(line);
 		}
-		catch (IOException ioe) {
-		    System.err.format("IOException: %s%n", ioe);
+		catch( NoSuchFileException e) {
+			
+			List<String> initList = new ArrayList<String>();
+			initList.add(line);
+			overWriteFileWithList(initList, path.toString());
+		}
+		catch (Exception e) {
+			
+			e.printStackTrace();
 		}
 	}
 	
-	public static void writeToFile(JSONObject jsonObj, String path) {
+	public static void appendListToFile(List<String> lines, String pathString) {
+
+		Path path = Paths.get(pathString);
+		for(String line: lines) {
+
+			appendLineToFile(line, path);
+		}
+	}
+	
+	public static void appendListToFile(List<String> lines, File file) {
+
+		appendListToFile(lines, file.getPath());
+	}
+	
+	public static void writeJSONObjectToFile(JSONObject jsonObj, String path) {
 		
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(path);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -178,7 +209,6 @@ public class H {
 		try {
 			result = new String(data.getBytes("ISO-8859-1"), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -197,7 +227,6 @@ public class H {
 		try {
 			cls = Class.forName(string);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -209,10 +238,8 @@ public class H {
 		try {
 			return newClass.newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;

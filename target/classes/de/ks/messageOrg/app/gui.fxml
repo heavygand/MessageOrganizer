@@ -12,13 +12,24 @@
    <children>
       <VBox prefHeight="1000.0" prefWidth="1300.0">
          <children>
-            <ToolBar id="toolbar" prefHeight="40.0" prefWidth="200.0">
+            <ToolBar id="toolbar" prefHeight="34.0" prefWidth="1300.0">
               <items>
-                  <Label id="Alle_anzahl" prefHeight="34.0" prefWidth="312.0" text="Anzahl: ">
+                  <Label id="Alle_anzahl" prefHeight="34.0" prefWidth="773.0" text="Anzahl: ">
                      <font>
                         <Font size="23.0" />
                      </font>
                   </Label>
+                  <Label text="Anzahl Personen für Liste:">
+                     <font>
+                        <Font size="23.0" />
+                     </font>
+                  </Label>
+                  <TextField id="generateAmount" prefHeight="35.0" prefWidth="74.0" />
+                  <Button id="generateButton" mnemonicParsing="false" prefHeight="0.0" prefWidth="157.0" text="Liste generieren">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
               </items>
             </ToolBar>
             <TabPane id="tabPane" prefHeight="960.0" prefWidth="1300.0" tabClosingPolicy="UNAVAILABLE">

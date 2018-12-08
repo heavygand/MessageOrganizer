@@ -57,11 +57,16 @@ public class GuiController {
 		VBox vBoxVideo = (VBox) scene.lookup("#Video");
 		MainApp.showVideo(vBoxVideo);
 		
+		vBoxKunden = (VBox) scene.lookup("#Kunden");
+		MainApp.showCustomers(vBoxKunden);
+		
 		VBox vBoxAlle = (VBox) scene.lookup("#Alle");
 		MainApp.showAll(vBoxAlle);
 		
-		vBoxKunden = (VBox) scene.lookup("#Kunden");
-		MainApp.showCustomers(vBoxKunden);
+		TextField generateAmount = (TextField) toolbar.getItems().get(2);
+		
+		Button generateButton = (Button) toolbar.getItems().get(3);
+		generateButton.setOnAction(e -> MainApp.generatePersonList(generateAmount.getText()));
 		
 //		c = new Counter();
 //		c.getPropertyChangeSupport().addPropertyChangeListener(c.PROPERTY_NUMBER, (a) -> {

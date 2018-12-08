@@ -1,15 +1,9 @@
 ﻿package de.ks.messageOrg.app;
 
-import java.io.*;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.swing.text.DateFormatter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -35,21 +29,24 @@ public class MainApp extends Application {
 
 	private static String				inboxPath		= "C:\\Users\\erikd\\Downloads\\messages\\inbox";
 	private static String				friendsPath		= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
+	private static String				generatedPathDB	= "C:\\Users\\erikd\\Dropbox\\Apps\\MessageOrganizer\\writeToList.txt";
 	private static String				ausnahmePath	= "./docs/ausgenommen";
 	private static String				blackListPath	= "./docs/blacklist";
 	private static String				properiesPath	= "./docs/properties";
 	private static String				cyPath			= "./docs/CY.txt";
 	private static String				customersPath	= "./docs/Kunden.txt";
+	private static String				generatedPathLo	= "./docs/generated.txt";
 	private static ArrayList<Person>	persons			= new ArrayList<Person>();
 	private static ArrayList<Handler>	handlers		= new ArrayList<>();
 	private static Person				currentPerson;
 	private static ObservableList<Node> currentUserList;
-	private static Label 				anzeige;
+	private static Label 				anzahlPersonenAnzeige;
 	private final int 					daysBack		= 3;
 	private Stage stage;
 	private static MainApp appInstance;
 	private static long starttime;
 	private static ArrayList<Person> personListInGroup;
+	private static ArrayList<Person> personListUnwritten;
 
 	public static void main(String[] args) {
 		
@@ -82,12 +79,14 @@ public class MainApp extends Application {
 	public static void showUnwritten(VBox vBox) {
 
 		currentUserList = vBox.getChildren();
+		personListUnwritten = new ArrayList<>();
 		
 		persons.forEach(person -> {
 			
 			if(!hasMessageFromMe(person)) {
 				
 				addToCurrentGUIList(vBox.getId(), person);
+				personListUnwritten.add(person);
 			}
 		});
 	}
@@ -176,10 +175,20 @@ public class MainApp extends Application {
 	 */
 	private static void moveToVBox(Person person, VBox vBoxKunden) {
 
-		String state = person.getState();
-		VBox vBoxOld = GuiController.getVBox(state);	
-		removeFromGUIList(vBoxOld, person);
+		VBox vBoxOld = getCurrentVBox4Person(person);	
+		removeFromGUIList(person);
 		addToGUIList(vBoxKunden, person);
+	}
+
+	/**
+	 * @param person
+	 * @return
+	 */
+	private static VBox getCurrentVBox4Person(Person person) {
+
+		String state = person.getState();
+		VBox vBoxOld = GuiController.getVBox(state);
+		return vBoxOld;
 	}
 
 	public static void showInGroup(VBox vBoxInnGroup, VBox vBoxGruppe_verschickt) {
@@ -200,7 +209,7 @@ public class MainApp extends Application {
 		
 		addPeopleWithRightMessages2ArrayList(personListInGroup, cyPath, vBoxInnGroup, ok, notOk);
 		
-		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBoxInnGroup);
+		buildGUIList4PersonListFromTo(personListInGroup, vBoxInnGroup);
 		
 		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
 	}
@@ -226,7 +235,7 @@ public class MainApp extends Application {
 	 * @param vBoxFrom
 	 */
 	@SuppressWarnings("unchecked")
-	private static void buildGUIList4PersonListFromTo(ArrayList<Person> personList, VBox vBoxFrom, VBox vBoxTo) {
+	private static void buildGUIList4PersonListFromTo(ArrayList<Person> personList, VBox vBoxTo) {
 
 		Collections.sort(personList);
 		
@@ -234,7 +243,7 @@ public class MainApp extends Application {
 		
 		for(Person person : personList) {			
 			
-			removeFromGUIList(vBoxFrom, person);
+			removeFromGUIList(person);
 			addToGUIList(vBoxTo, person);
 		}
 	}
@@ -469,10 +478,16 @@ public class MainApp extends Application {
 		});
 	}
 
-	private static void removeFromGUIList(VBox vBox, Person person) {
+	private static void removeFromGUIList(ArrayList<Person> personList) {
+		
+		personList.forEach(person -> removeFromGUIList(person));
+	}
+
+	private static void removeFromGUIList(Person person) {
 		
 		ArrayList<Object> toRemove = new ArrayList<>();
 
+		VBox vBox = getCurrentVBox4Person(person);
 		ObservableList<Node> children = vBox.getChildren();
 		for(Object personBoxObj : children) {
 			
@@ -612,7 +627,7 @@ public class MainApp extends Application {
 	 */
 	public static Label getAnzeige() {
 	
-		return anzeige;
+		return anzahlPersonenAnzeige;
 	}
 
 	
@@ -621,18 +636,18 @@ public class MainApp extends Application {
 	 */
 	public static void setPersonenAnzahlAnzeige(Label anzeige) {
 	
-		MainApp.anzeige = anzeige;
+		MainApp.anzahlPersonenAnzeige = anzeige;
 	}
 	
-	private void refreshAnzeige() {
+	private static void refreshAnzeige() {
 		
-		anzeige.setText(currentUserList.size() + " Personen");
+		anzahlPersonenAnzeige.setText(currentUserList.size() + " Personen");
 	}
 
 	public static void refreshAnzeige(VBox vBox) {
 
 		currentUserList = vBox.getChildren();
-		anzeige.setText(currentUserList.size() + " Personen");
+		anzahlPersonenAnzeige.setText(currentUserList.size() + " Personen");
 	}
 
 	public static void savePersonNotes(Person person, TextArea notesArea, DatePicker nachfassenAm) {
@@ -665,13 +680,13 @@ public class MainApp extends Application {
 			}
 		});
 		
-		H.writeToFile(rootObj, properiesPath);
+		H.writeJSONObjectToFile(rootObj, properiesPath);
 	}
 
 	public static void makeGroupMember(Person person, VBox vBoxGruppe_verschickt, VBox vBoxIn_Gruppe) {
 
 		personListInGroup.add(person);
-		buildGUIList4PersonListFromTo(personListInGroup, vBoxGruppe_verschickt, vBoxIn_Gruppe);
+		buildGUIList4PersonListFromTo(personListInGroup, vBoxIn_Gruppe);
 		
 		H.appendLineToFile(person.getTitle(), cyPath);
 	}
@@ -684,5 +699,31 @@ public class MainApp extends Application {
 		person.getStatusLabel().setText(vBoxKunden.getId());
 		
 		H.appendLineToFile(person.getTitle(), customersPath);
+	}
+
+	public static void generatePersonList(String text) {
+
+		int amount = Integer.parseInt(text);
+		
+		ArrayList<Person> localPersons  = new ArrayList<Person>(personListUnwritten.subList(0, amount));
+		
+		removeFromGUIList(localPersons);
+		personListUnwritten.removeAll(localPersons);
+		refreshAnzeige();
+		
+		H.appendListToFile(getNameListFromPersons(localPersons), generatedPathDB);
+		H.appendListToFile(getNameListFromPersons(localPersons), generatedPathLo);
+	}
+
+	private static List<String> getNameListFromPersons(ArrayList<Person> localPersons) {
+		
+		ArrayList<String> nameList = new ArrayList<String>();
+
+		for(Person person : localPersons) {
+			
+			nameList.add(person.getTitle());
+		}
+		
+		return nameList;
 	}
 }

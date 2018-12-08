@@ -31,7 +31,7 @@ public class CreatorCreatorCreator {
 					}
 				}			
 				
-				H.writeToFile(lines, file);
+				H.overWriteFileWithList(lines, file);
 			}
 		}
 	}
