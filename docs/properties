@@ -1,22 +1,17 @@
 {"properties": [
   {
-    "notes": "lol, an meinem geburtstag nachfassen",
-    "name": "Alexander Hötzl",
-    "nachfassen": 563410800000
-  },
-  {
-    "notes": "test notiz für Frank Walter",
-    "name": "Frank Walter",
-    "nachfassen": 1542582000000
-  },
-  {
-    "notes": "test notiz für Julius Freund",
-    "name": "Julius Freund",
-    "nachfassen": 1537559748000
-  },
-  {
-    "notes": "Hab dich lieb :-*",
-    "name": "Nadine Kaiser",
+    "notes": "Achtung, hier ist irgendwas mit den Messages verbugt...",
+    "name": "Adrian Garbas",
     "nachfassen": 0
+  },
+  {
+    "notes": "",
+    "name": "Andrea Nachtigall",
+    "nachfassen": 1544396400000
+  },
+  {
+    "notes": "Sagt immer er guckt sich die Gruppe an, aber macht es nicht",
+    "name": "Vincent Knappe",
+    "nachfassen": 1544310000000
   }
 ]}

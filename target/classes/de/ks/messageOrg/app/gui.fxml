@@ -14,18 +14,21 @@
          <children>
             <ToolBar id="toolbar" prefHeight="34.0" prefWidth="1300.0">
               <items>
-                  <Label id="Alle_anzahl" prefHeight="34.0" prefWidth="773.0" text="Anzahl: ">
+                  <Label id="Alle_anzahl" prefHeight="34.0" prefWidth="263.0" text="Anzahl: ">
                      <font>
                         <Font size="23.0" />
                      </font>
                   </Label>
-                  <Label text="Anzahl Personen für Liste:">
+                  <Separator layoutX="176.0" layoutY="10.0" orientation="VERTICAL" prefHeight="25.0" />
+                  <TextField id="searchField" prefHeight="35.0" prefWidth="375.0" promptText="Name eingeben" />
+                  <Button id="search" mnemonicParsing="false" prefHeight="39.0" prefWidth="90.0" text="Suchen">
                      <font>
-                        <Font size="23.0" />
+                        <Font size="18.0" />
                      </font>
-                  </Label>
-                  <TextField id="generateAmount" prefHeight="35.0" prefWidth="74.0" />
-                  <Button id="generateButton" mnemonicParsing="false" prefHeight="0.0" prefWidth="157.0" text="Liste generieren">
+                  </Button>
+                  <Separator orientation="VERTICAL" prefHeight="25.0" />
+                  <TextField id="generateAmount" prefHeight="35.0" prefWidth="64.0" promptText="Zahl" />
+                  <Button id="generateButton" mnemonicParsing="false" prefHeight="39.0" prefWidth="159.0" text="Liste generieren">
                      <font>
                         <Font size="18.0" />
                      </font>

@@ -35,7 +35,11 @@ public class GuiController {
 
 			@Override
 			public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
-				MainApp.refreshAnzeige((VBox) newValue.getContent());
+				
+				VBox newVBox = (VBox) newValue.getContent();
+				
+				MainApp.setCurrentVBox(newVBox);
+				MainApp.refreshAnzeige(newVBox);
 			}
 		});
 		
@@ -49,7 +53,7 @@ public class GuiController {
 		MainApp.showGroup(vBoxGruppe_verschickt);
 		
 		vBoxIn_Gruppe = (VBox) scene.lookup("#In_Gruppe");
-		MainApp.showInGroup(vBoxIn_Gruppe, vBoxGruppe_verschickt);
+		MainApp.showInGroup(vBoxIn_Gruppe);
 		
 		VBox vBoxNachfassen = (VBox) scene.lookup("#Nachfassen");
 		MainApp.showNachzufassen(vBoxNachfassen);
@@ -63,9 +67,14 @@ public class GuiController {
 		VBox vBoxAlle = (VBox) scene.lookup("#Alle");
 		MainApp.showAll(vBoxAlle);
 		
-		TextField generateAmount = (TextField) toolbar.getItems().get(2);
+		TextField searchField = (TextField) toolbar.getItems().get(2);
 		
-		Button generateButton = (Button) toolbar.getItems().get(3);
+		Button search = (Button) toolbar.getItems().get(3);
+		search.setOnAction(e -> MainApp.search(searchField.getText()));
+		
+		TextField generateAmount = (TextField) toolbar.getItems().get(5);
+		
+		Button generateButton = (Button) toolbar.getItems().get(6);
 		generateButton.setOnAction(e -> MainApp.generatePersonList(generateAmount.getText()));
 		
 //		c = new Counter();
@@ -143,7 +152,16 @@ public class GuiController {
 
 	public static VBox getVBox(String state) {
 
-//		System.out.println("Suche #" + state + " in der GUI");
-		return (VBox) mainScene.lookup("#"+state);
+		VBox vBox = null;
+		try {
+			
+			vBox = (VBox) mainScene.lookup("#" + state);
+		}
+		catch (ClassCastException e) {
+			
+			System.out.println("Suche #" + state + " in der GUI");
+		}
+		
+		return vBox;
 	}
 }

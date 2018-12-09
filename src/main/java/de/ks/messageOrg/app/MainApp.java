@@ -27,26 +27,26 @@ import javafx.stage.Stage;
 @SuppressWarnings("restriction")
 public class MainApp extends Application {
 
-	private static String				inboxPath		= "C:\\Users\\erikd\\Downloads\\messages\\inbox";
-	private static String				friendsPath		= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
-	private static String				generatedPathDB	= "C:\\Users\\erikd\\Dropbox\\Apps\\MessageOrganizer\\writeToList.txt";
-	private static String				ausnahmePath	= "./docs/ausgenommen";
-	private static String				blackListPath	= "./docs/blacklist";
-	private static String				properiesPath	= "./docs/properties";
-	private static String				cyPath			= "./docs/CY.txt";
-	private static String				customersPath	= "./docs/Kunden.txt";
-	private static String				generatedPathLo	= "./docs/generated.txt";
-	private static ArrayList<Person>	persons			= new ArrayList<Person>();
-	private static ArrayList<Handler>	handlers		= new ArrayList<>();
+	private static String				inboxPath			= "C:\\Users\\erikd\\Downloads\\messages\\inbox";
+	private static String				friendsPath			= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
+	private static String				generatedPathDB		= "C:\\Users\\erikd\\Dropbox\\Apps\\MessageOrganizer\\writeToList.txt";
+	private static String				ausnahmePath		= "./docs/ausgenommen";
+	private static String				blackListPath		= "./docs/blacklist";
+	private static String				properiesPath		= "./docs/properties";
+	private static String				cyPath				= "./docs/CY.txt";
+	private static String				customersPath		= "./docs/Kunden.txt";
+	private static ArrayList<Person>	persons				= new ArrayList<Person>();
+	private static ArrayList<Person> 	personListInGroup	= new ArrayList<Person>();
+	private static ArrayList<Person>	personListUnwritten	= new ArrayList<Person>();
+	private static ArrayList<Handler>	handlers			= new ArrayList<>();
 	private static Person				currentPerson;
 	private static ObservableList<Node> currentUserList;
 	private static Label 				anzahlPersonenAnzeige;
-	private final int 					daysBack		= 3;
+	private final int 					daysBack			= 3;
 	private Stage stage;
 	private static MainApp appInstance;
 	private static long starttime;
-	private static ArrayList<Person> personListInGroup;
-	private static ArrayList<Person> personListUnwritten;
+	private static VBox currentVBox;
 
 	public static void main(String[] args) {
 		
@@ -79,11 +79,12 @@ public class MainApp extends Application {
 	public static void showUnwritten(VBox vBox) {
 
 		currentUserList = vBox.getChildren();
-		personListUnwritten = new ArrayList<>();
+		
+		List<String> cyPathLines = H.getLines(cyPath);
 		
 		persons.forEach(person -> {
 			
-			if(!hasMessageFromMe(person)) {
+			if(!hasMessageFromMe(person) && !cyPathLines.contains(person.getTitle())) {
 				
 				addToCurrentGUIList(vBox.getId(), person);
 				personListUnwritten.add(person);
@@ -151,16 +152,26 @@ public class MainApp extends Application {
 		
 		addPeopleWithRightMessagesToCurrentGUIList(vBox.getId(), ok, notOk);
 	}
+	
+	private static void addPeopleWithRightMessagesToCurrentGUIList(String status, ArrayList<String> okList, ArrayList<String> notOkList) {
+
+		currentUserList.removeAll(currentUserList);
+		
+		persons.forEach(person -> {
+			
+			if(checkContain(okList, person) && !checkContain(notOkList, person)) {
+				
+				addToCurrentGUIList(status, person);
+			}
+		});
+	}
 
 	public static void showCustomers(VBox vBoxKunden) {
 
 		currentUserList = vBoxKunden.getChildren();
-		ArrayList<String> ok = new ArrayList<>();
-		ArrayList<String> notOk = new ArrayList<>();
-		
-		ArrayList<Person> personListCustomers = new ArrayList<>();
 		
 		vBoxKunden.getChildren().clear();
+		
 		H.getLines(customersPath).forEach(personString -> {
 			
 			Person person = getPersonInPersonList(personString);
@@ -171,13 +182,29 @@ public class MainApp extends Application {
 
 	/**
 	 * @param person
-	 * @param vBoxKunden
+	 * @param vBoxTo
 	 */
-	private static void moveToVBox(Person person, VBox vBoxKunden) {
-
-		VBox vBoxOld = getCurrentVBox4Person(person);	
+	private static void moveToVBox(Person person, VBox vBoxTo) {
+		
 		removeFromGUIList(person);
-		addToGUIList(vBoxKunden, person);
+		addToGUIList(vBoxTo, person);
+		
+		person.setState(vBoxTo.getId());
+		
+		if (person.getStatusLabel() != null) {
+			
+			person.getStatusLabel().setText(vBoxTo.getId());
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static void moveToVBox(ArrayList<Person> persons, VBox vBoxTo) {
+
+		Collections.sort(persons);
+		
+		vBoxTo.getChildren().clear();
+
+		persons.forEach(person -> moveToVBox(person, vBoxTo));
 	}
 
 	/**
@@ -191,61 +218,33 @@ public class MainApp extends Application {
 		return vBoxOld;
 	}
 
-	public static void showInGroup(VBox vBoxInnGroup, VBox vBoxGruppe_verschickt) {
+	public static void showInGroup(VBox vBoxInGroup) {
 		
 		long newStarttime = System.currentTimeMillis();
 		System.out.println("Lese CY Gruppenmitglieder ein...");
 
-		currentUserList = vBoxInnGroup.getChildren();
-		ArrayList<String> ok = new ArrayList<>();
+		currentUserList = vBoxInGroup.getChildren();
 		ArrayList<String> notOk = new ArrayList<>();
 		
-		ok.add("https://www.facebook.com/groups/197111937786655/");
 		notOk.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
 		notOk.add("https://youtu.be/opBGuztAvtw");
 		notOk.add("https://youtu.be/gJxp4loJyyA");
 		
-		personListInGroup = new ArrayList<>();
-		
-		addPeopleWithRightMessages2ArrayList(personListInGroup, cyPath, vBoxInnGroup, ok, notOk);
-		
-		buildGUIList4PersonListFromTo(personListInGroup, vBoxInnGroup);
-		
-		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
-	}
-
-	private static void addPeopleWithRightMessages2ArrayList(ArrayList<Person> personList, String path, VBox vBox, ArrayList<String> ok, ArrayList<String> notOk) {
-
-		H.getLines(path).forEach(line -> {
+		H.getLines(cyPath).forEach(line -> {
 			
 			Person person = getPersonInPersonList(line);
 			
 			if(person == null && isAusnahme(line)) {} //System.out.println(line + " ist ausnahme");
-			else if(person == null) System.out.println(line + " ist nicht bei den Personen, aber in " + vBox.getId());
+			else if(person == null) System.out.println(line + " ist nicht bei den Personen, aber in " + vBoxInGroup.getId());
 			
-			if(person != null && checkContain(ok, person) && !checkContain(notOk, person)) {
+			if(person != null && !checkContain(notOk, person)) {
 				
-				personList.add(person);
+				personListInGroup.add(person);
+				moveToVBox(person, vBoxInGroup);
 			}
 		});
-	}
-
-	/**
-	 * @param vBoxTo
-	 * @param vBoxFrom
-	 */
-	@SuppressWarnings("unchecked")
-	private static void buildGUIList4PersonListFromTo(ArrayList<Person> personList, VBox vBoxTo) {
-
-		Collections.sort(personList);
 		
-		vBoxTo.getChildren().clear();
-		
-		for(Person person : personList) {			
-			
-			removeFromGUIList(person);
-			addToGUIList(vBoxTo, person);
-		}
+		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
 	}
 
 	public static void showNachzufassen(VBox vBox) {
@@ -269,19 +268,6 @@ public class MainApp extends Application {
 		}
 		
 		return null;
-	}
-
-	private static void addPeopleWithRightMessagesToCurrentGUIList(String status, ArrayList<String> okList, ArrayList<String> notOkList) {
-
-		currentUserList.removeAll(currentUserList);
-		
-		persons.forEach(person -> {
-			
-			if(checkContain(okList, person) && !checkContain(notOkList, person)) {
-				
-				addToCurrentGUIList(status, person);
-			}
-		});
 	}
 
 	/**
@@ -459,7 +445,7 @@ public class MainApp extends Application {
 		long timeStampLongFirst = person.getMessages().isEmpty() ? 0 : getFirstMessage(person).getTimestamp_ms();        
         person.setFirstContact(timeStampLongFirst);
 
-		long timeStampLongLast = person.getMessages().isEmpty() ? 0 : getLastMessage(person).getTimestamp_ms();        
+		long timeStampLongLast = getLastMessageFromPerson(person)==null ? 0 : getLastMessageFromPerson(person).getTimestamp_ms();        
         person.setLastContact(timeStampLongLast);
         
         String formattedDate = H.getGermanDateTimeString(timeStampLongFirst);
@@ -488,7 +474,11 @@ public class MainApp extends Application {
 		ArrayList<Object> toRemove = new ArrayList<>();
 
 		VBox vBox = getCurrentVBox4Person(person);
+		
+		if(vBox==null) return;
+		
 		ObservableList<Node> children = vBox.getChildren();
+		
 		for(Object personBoxObj : children) {
 			
 			HBox personBox = (HBox) personBoxObj;
@@ -528,10 +518,19 @@ public class MainApp extends Application {
         stage.show();
 	}
 
-	private static Message getLastMessage(Person person) {
+	private static Message getLastMessageFromPerson(Person person) {
 
 		ArrayList<Message> messages = person.getMessages();
-		return messages.get(0);
+		
+		for(Message message : messages) {
+			
+			if(message.getSender_name().equals(person.getTitle())) {
+				
+				return message;
+			}
+		}
+		
+		return null;
 	}
 
 	private static Message getFirstMessage(Person person) {
@@ -654,10 +653,16 @@ public class MainApp extends Application {
 
 		String notes = notesArea.getText();
 		LocalDate dpValue = nachfassenAm.getValue();
+
+		if (notes != null) {
+			
+			person.setNotes(notes);
+		}
 		
-		person.setNotes(notes);
-		person.setNachfassen(H.getTimeStampAsLong(dpValue));
-		
+		if (dpValue != null) {
+			
+			person.setNachfassen(H.getTimeStampAsLong(dpValue));
+		}
 		writeBackProperties();
 	}
 
@@ -686,7 +691,11 @@ public class MainApp extends Application {
 	public static void makeGroupMember(Person person, VBox vBoxGruppe_verschickt, VBox vBoxIn_Gruppe) {
 
 		personListInGroup.add(person);
-		buildGUIList4PersonListFromTo(personListInGroup, vBoxIn_Gruppe);
+		moveToVBox(personListInGroup, vBoxIn_Gruppe);
+		
+		refreshAnzeige();
+		person.setState(vBoxIn_Gruppe.getId());
+		person.getStatusLabel().setText(vBoxIn_Gruppe.getId());
 		
 		H.appendLineToFile(person.getTitle(), cyPath);
 	}
@@ -695,24 +704,41 @@ public class MainApp extends Application {
 
 		moveToVBox(person, vBoxKunden);
 		
-		person.setState(vBoxKunden.getId());
-		person.getStatusLabel().setText(vBoxKunden.getId());
-		
 		H.appendLineToFile(person.getTitle(), customersPath);
+	}
+	
+	private static List<Person> getCurrentPersonListFromGUI() {
+
+		ArrayList<Person> localPersons = new ArrayList<>();
+		
+		for(Node userNode : currentUserList) {
+			
+			HBox userHBox = (HBox) userNode;
+			
+			Label nameLabel = (Label) userHBox.getChildren().get(0);
+			
+			Person person = getPersonInPersonList(nameLabel.getText());
+			
+			localPersons.add(person);
+		}
+		
+		return localPersons;
 	}
 
 	public static void generatePersonList(String text) {
 
 		int amount = Integer.parseInt(text);
 		
-		ArrayList<Person> localPersons  = new ArrayList<Person>(personListUnwritten.subList(0, amount));
+		ArrayList<Person> localPersons  = new ArrayList<Person>(getCurrentPersonListFromGUI().subList(0, amount));
 		
-		removeFromGUIList(localPersons);
-		personListUnwritten.removeAll(localPersons);
+		if (currentVBox.getId().equals("Unangeschriebene")) {
+			
+			moveToVBox(localPersons, GuiController.getVBox("Angeschriebene"));
+			personListUnwritten.removeAll(localPersons);
+		}
 		refreshAnzeige();
 		
 		H.appendListToFile(getNameListFromPersons(localPersons), generatedPathDB);
-		H.appendListToFile(getNameListFromPersons(localPersons), generatedPathLo);
 	}
 
 	private static List<String> getNameListFromPersons(ArrayList<Person> localPersons) {
@@ -725,5 +751,27 @@ public class MainApp extends Application {
 		}
 		
 		return nameList;
+	}
+
+	public static void search(String name) {
+
+		Person person = getPersonInPersonList(name);
+		
+		if(person == null) {
+			
+			Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+			errorAlert.setHeaderText("Fehler");
+			errorAlert.setContentText("Diese Person konnte nicht gefunden werden");
+			errorAlert.showAndWait();
+		}
+		else {
+			
+			appInstance.showPerson(person);
+		}
+	}
+
+	public static void setCurrentVBox(VBox newVBox) {
+
+		currentVBox = newVBox;
 	}
 }
