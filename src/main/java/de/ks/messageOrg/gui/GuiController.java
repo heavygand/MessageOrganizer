@@ -20,6 +20,8 @@ public class GuiController {
 	private static VBox vBoxIn_Gruppe;
 	private static Scene mainScene;
 	private static VBox vBoxKunden;
+	private static VBox vBoxKeineReaktion;
+	private static VBox vBoxAlt;
 
 	public static void initMainWindow(Scene scene) {
 		
@@ -63,6 +65,12 @@ public class GuiController {
 		
 		vBoxKunden = (VBox) scene.lookup("#Kunden");
 		MainApp.showCustomers(vBoxKunden);
+		
+//		vBoxKeineReaktion = (VBox) scene.lookup("#keineReaktion");
+//		MainApp.showNoReaction(vBoxKeineReaktion);
+//		
+//		vBoxAlt = (VBox) scene.lookup("#alt");
+//		MainApp.showOld(vBoxAlt);
 		
 		VBox vBoxAlle = (VBox) scene.lookup("#Alle");
 		MainApp.showAll(vBoxAlle);

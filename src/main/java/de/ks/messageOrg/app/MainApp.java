@@ -533,6 +533,11 @@ public class MainApp extends Application {
 		return null;
 	}
 
+	private static Message getLastMessage(Person person) {
+		
+		return person.getMessages().get(0);
+	}
+
 	private static Message getFirstMessage(Person person) {
 
 		ArrayList<Message> messages = person.getMessages();
@@ -773,5 +778,24 @@ public class MainApp extends Application {
 	public static void setCurrentVBox(VBox newVBox) {
 
 		currentVBox = newVBox;
+	}
+
+	public static void showNoReaction(VBox vBox) {
+
+		currentUserList = vBox.getChildren();
+		
+		persons.forEach(person -> {
+			
+			if(hasMessageFromMe(person)) {
+				
+				addToCurrentGUIList(null, person);
+			}
+		});
+	}
+
+	public static void showOld(VBox vBoxAlt) {
+
+		// TODO Auto-generated method stub
+		
 	}
 }

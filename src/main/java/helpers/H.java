@@ -11,9 +11,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.xml.parsers.*;
+
 import org.apache.tika.parser.txt.CharsetDetector;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 public class H {
 
@@ -244,16 +248,6 @@ public class H {
 		}
 		return null;
 	}
-
-	public static String getClassName(String key) {
-
-		return "de.ks.messageOrg.model."+(key.charAt(0)+"").toUpperCase()+key.substring(1, key.length()-1);
-	}
-
-	public static String getCreatorName(String key) {
-
-		return "de.ks.messageOrg.model.util."+cutOffCharsAtEnd(getUpperFirst(key), 1)+"Creator";
-	}
 	
 	public static String cutOffCharsAtEnd(String input, int i) {
 
@@ -380,5 +374,53 @@ public class H {
 	public static long getTimeStampAsLong(LocalDate dpValue) {
 
 		return getTimeStamp(dpValue).getTime();
+	}
+
+	public static Document getXmlDocument(String path) {
+
+		// Create a DocumentBuilder
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = null;
+		try {
+			builder = factory.newDocumentBuilder();
+		} catch (ParserConfigurationException e1) {
+			e1.printStackTrace();
+		}
+		
+		// Create a Document from a file or stream
+		String fXmlFile = H.readFile(path);
+		ByteArrayInputStream input = null;
+		try {
+			input = new ByteArrayInputStream(fXmlFile.toString().getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		Document doc = null;
+		try {
+			doc = builder.parse(input);
+		} catch (SAXException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		return doc;
+	}
+
+	public static String substringBefore(String line, String beforeWhat) {
+
+		return line.substring(0, line.indexOf(beforeWhat));
+	}
+
+	public static String substringAfter(String line, String afterWhat) {
+
+		return line.substring(line.indexOf(afterWhat)+afterWhat.length());
+	}
+	public static String substringBeforeLast(String line, String beforeWhat) {
+
+		return line.substring(0, line.lastIndexOf(beforeWhat));
+	}
+	public static String substringBetween(String line, String begin, String end) {
+
+		return substringBefore(substringAfter(line, begin), end);
 	}
 }
