@@ -702,14 +702,14 @@ public class MainApp extends Application {
 		person.setState(vBoxIn_Gruppe.getId());
 		person.getStatusLabel().setText(vBoxIn_Gruppe.getId());
 		
-		H.appendLineToFile(person.getTitle(), cyPath);
+		H.appendToFile(person.getTitle(), cyPath);
 	}
 
 	public static void makeCustomer(Person person, VBox vBoxKunden) {
 
 		moveToVBox(person, vBoxKunden);
 		
-		H.appendLineToFile(person.getTitle(), customersPath);
+		H.appendToFile(person.getTitle(), customersPath);
 	}
 	
 	private static List<Person> getCurrentPersonListFromGUI() {
@@ -743,7 +743,7 @@ public class MainApp extends Application {
 		}
 		refreshAnzeige();
 		
-		H.appendListToFile(getNameListFromPersons(localPersons), generatedPathDB);
+		H.appendToFile(getNameListFromPersons(localPersons), generatedPathDB);
 	}
 
 	private static List<String> getNameListFromPersons(ArrayList<Person> localPersons) {

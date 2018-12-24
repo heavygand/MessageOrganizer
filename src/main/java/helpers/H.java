@@ -20,7 +20,15 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 public class H {
+	
+	/*
+	 * 
+	 * FILE STUFF
+	 * 
+	 */
 
+	// READING
+	
 	private static String readFileKacke(String file) throws IOException {
 
 		BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -96,12 +104,14 @@ public class H {
 		return getLines(file.getPath());
 	}
 	
-	public static void overWriteFileWithList(List<String> lines, String path) {
+	// WRITING
+	
+	public static void overWriteFile(List<String> lines, String path) {
 		
-		overWriteFileWithList(lines, new File(path));
+		overWriteFile(lines, new File(path));
 	}
 	
-	public static void overWriteFileWithList(List<String> lines, File file) {
+	public static void overWriteFile(List<String> lines, File file) {
 		
 		FileWriter writer = null;
 		try {
@@ -135,19 +145,45 @@ public class H {
 		}
 	}
 	
-	public static void appendLineToFile(String line, File file) {
+	public static void overWriteFile(String content, File file) {
+		
+		FileWriter writer = null;
+		try {
+			
+			file.createNewFile();
+			writer = new FileWriter(file);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			writer.write(content);
+			writer.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void overWriteFile(String content, String path) {
+
+		overWriteFile(content, new File(path));
+	}
+	
+	public static void appendToFile(String line, File file) {
 		
 		String pathString = file.getPath();
-		appendLineToFile(line, pathString);
+		appendToFile(line, pathString);
 	}
 	
-	public static void appendLineToFile(String line, String pathString) {
+	public static void appendToFile(String line, String pathString) {
 		
 		Path path = Paths.get(pathString);
-		appendLineToFile(line, path);
+		appendToFile(line, path);
 	}
 	
-	public static void appendLineToFile(String line, Path path) {
+	public static void appendToFile(String line, Path path) {
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.APPEND)) {
 
@@ -158,7 +194,7 @@ public class H {
 			
 			List<String> initList = new ArrayList<String>();
 			initList.add(line);
-			overWriteFileWithList(initList, path.toString());
+			overWriteFile(initList, path.toString());
 		}
 		catch (Exception e) {
 			
@@ -166,18 +202,18 @@ public class H {
 		}
 	}
 	
-	public static void appendListToFile(List<String> lines, String pathString) {
+	public static void appendToFile(List<String> lines, String pathString) {
 
 		Path path = Paths.get(pathString);
 		for(String line: lines) {
 
-			appendLineToFile(line, path);
+			appendToFile(line, path);
 		}
 	}
 	
-	public static void appendListToFile(List<String> lines, File file) {
+	public static void appendToFile(List<String> lines, File file) {
 
-		appendListToFile(lines, file.getPath());
+		appendToFile(lines, file.getPath());
 	}
 	
 	public static void writeJSONObjectToFile(JSONObject jsonObj, String path) {
@@ -193,6 +229,69 @@ public class H {
 		
 		out.print(jsonText);
 		out.close();
+	}
+	
+	/*
+	 * 
+	 * CLASS STUFF
+	 * 
+	 */
+	public static Class getClass(String string) {
+
+		Class cls = null;
+		try {
+			cls = Class.forName(string);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return cls;
+	}
+
+	public static Object newInstance(Class newClass) {
+
+		try {
+			return newClass.newInstance();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	/*
+	 * 
+	 * STRING STUFF
+	 * 
+	 */
+	public static String cutOffCharsAtEnd(String input, int i) {
+
+		return input.substring(0, input.length()-i);
+	}
+
+	public static String getUpperFirst(String input) {
+		
+		return (input.charAt(0)+"").toUpperCase()+input.substring(1);
+	}
+
+	public static String substringBefore(String line, String beforeWhat) {
+
+		return line.substring(0, line.indexOf(beforeWhat));
+	}
+
+	public static String substringAfter(String line, String afterWhat) {
+
+		return line.substring(line.indexOf(afterWhat)+afterWhat.length());
+	}
+	public static String substringBeforeLast(String line, String beforeWhat) {
+
+		return line.substring(0, line.lastIndexOf(beforeWhat));
+	}
+	public static String substringBetween(String line, String begin, String end) {
+
+		return substringBefore(substringAfter(line, begin), end);
 	}
 
 	public static String cleanUp(String data) {
@@ -225,40 +324,12 @@ public class H {
 //		}
 		return result;
 	}
-	public static Class getClass(String string) {
-
-		Class cls = null;
-		try {
-			cls = Class.forName(string);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		
-		return cls;
-	}
-
-	public static Object newInstance(Class newClass) {
-
-		try {
-			return newClass.newInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 	
-	public static String cutOffCharsAtEnd(String input, int i) {
-
-		return input.substring(0, input.length()-i);
-	}
-
-	public static String getUpperFirst(String input) {
-		
-		return (input.charAt(0)+"").toUpperCase()+input.substring(1);
-	}
-
+	/*
+	 * 
+	 * JSON/XML STUFF
+	 * 
+	 */
 	public static boolean isJsonArray(JSONObject jsonObj, String key) {
 
 		try {
@@ -270,9 +341,39 @@ public class H {
 		return true;
 	}
 
+	public static Document getXmlDocument(String path) {
+
+		// Create a DocumentBuilder
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = null;
+		try {
+			builder = factory.newDocumentBuilder();
+		} catch (ParserConfigurationException e1) {
+			e1.printStackTrace();
+		}
+		
+		// Create a Document from a file or stream
+		String fXmlFile = H.readFile(path);
+		ByteArrayInputStream input = null;
+		try {
+			input = new ByteArrayInputStream(fXmlFile.toString().getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		Document doc = null;
+		try {
+			doc = builder.parse(input);
+		} catch (SAXException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		return doc;
+	}
+
 	/*
 	 * 
-	 * DATUMSZEUG
+	 * DATE STUFF
 	 * 
 	 */
 	public static LocalDateTime getLocalDateTime(Timestamp timeStamp) {
@@ -374,53 +475,5 @@ public class H {
 	public static long getTimeStampAsLong(LocalDate dpValue) {
 
 		return getTimeStamp(dpValue).getTime();
-	}
-
-	public static Document getXmlDocument(String path) {
-
-		// Create a DocumentBuilder
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = null;
-		try {
-			builder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException e1) {
-			e1.printStackTrace();
-		}
-		
-		// Create a Document from a file or stream
-		String fXmlFile = H.readFile(path);
-		ByteArrayInputStream input = null;
-		try {
-			input = new ByteArrayInputStream(fXmlFile.toString().getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-		}
-		Document doc = null;
-		try {
-			doc = builder.parse(input);
-		} catch (SAXException e1) {
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		return doc;
-	}
-
-	public static String substringBefore(String line, String beforeWhat) {
-
-		return line.substring(0, line.indexOf(beforeWhat));
-	}
-
-	public static String substringAfter(String line, String afterWhat) {
-
-		return line.substring(line.indexOf(afterWhat)+afterWhat.length());
-	}
-	public static String substringBeforeLast(String line, String beforeWhat) {
-
-		return line.substring(0, line.lastIndexOf(beforeWhat));
-	}
-	public static String substringBetween(String line, String begin, String end) {
-
-		return substringBefore(substringAfter(line, begin), end);
 	}
 }
