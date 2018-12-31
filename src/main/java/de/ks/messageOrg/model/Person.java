@@ -2,18 +2,45 @@ package de.ks.messageOrg.model;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
 
-import javafx.scene.control.Label;
+import javax.persistence.*;
 
-public class Person extends Node{
+@Entity
+public class Person{
+	
+	// JPA stuff that we need
+	private static final String			PERSISTENCE_UNIT_NAME	= "persons";
+	private static EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+	private static EntityManager em = factory.createEntityManager();
 
-    private String title;
+    
+	/**
+	 * @return the em
+	 */
+	public static EntityManager getEm() {
+	
+		return em;
+	}
+
+	@Id
+	private String title;
     private boolean is_still_participant;
     private String thread_type;
     private String thread_path;
     private ArrayList<Message> messages = new ArrayList<>();
+    
+	public Person() {
+	}
+
+	public Person(String title, boolean is_still_participant, String thread_type, String thread_path/*, ArrayList<Message> messages*/) {
+
+		this.title = title;
+		this.is_still_participant = is_still_participant;
+		this.thread_type = thread_type;
+		this.thread_path = thread_path;
+		this.messages = messages;
+	}
     
     public ArrayList<Message> getMessages() {
     	
@@ -23,13 +50,6 @@ public class Person extends Node{
 	public void setMessages(ArrayList<Message> messages) {
 
 		this.messages = messages;
-	}
-
-	@Override
-	public int compareTo(Object o) {
-
-		if(o instanceof Person) return compareTo((Person) o);
-		return 0;
 	}
 
 	public int compareTo(Person otherPerson) {
@@ -218,18 +238,6 @@ public class Person extends Node{
 		this.state = state;
 	}
 	
-	private Label statusLabel;
-
-	public Label getStatusLabel() {
-
-		return statusLabel;
-	}
-
-	public void setStatusLabel(Label currentStatus) {
-
-		statusLabel = currentStatus;
-	}
-	
 /**
 *   PROPERTYCHANGESTUFF
 */
@@ -284,4 +292,12 @@ public class Person extends Node{
     	
        return listeners;
     }
+
+	public void persistAndCommit() {
+
+		em.getTransaction().begin();
+		em.persist(this);
+		em.getTransaction().commit();
+		em.close();
+	}
 }

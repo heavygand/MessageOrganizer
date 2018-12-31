@@ -9,10 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import de.ks.messageOrg.DataReader.DataReader;
 import de.ks.messageOrg.gui.GuiController;
-import de.ks.messageOrg.handlers.*;
 import de.ks.messageOrg.model.Message;
 import de.ks.messageOrg.model.Person;
+import de.ks.messageOrg.model.util.MessageCreator;
 import de.ks.messageOrg.model.util.PersonCreator;
 import helpers.H;
 import javafx.application.Application;
@@ -26,7 +27,6 @@ import javafx.stage.Stage;
 
 @SuppressWarnings("restriction")
 public class MainApp extends Application {
-
 	private static String				inboxPath			= "C:\\Users\\erikd\\Downloads\\messages\\inbox";
 	private static String				friendsPath			= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
 	private static String				generatedPathDB		= "C:\\Users\\erikd\\Dropbox\\Apps\\MessageOrganizer\\writeToList.txt";
@@ -35,10 +35,10 @@ public class MainApp extends Application {
 	private static String				properiesPath		= "./docs/properties";
 	private static String				cyPath				= "./docs/CY.txt";
 	private static String				customersPath		= "./docs/Kunden.txt";
+
 	private static ArrayList<Person>	persons				= new ArrayList<Person>();
 	private static ArrayList<Person> 	personListInGroup	= new ArrayList<Person>();
 	private static ArrayList<Person>	personListUnwritten	= new ArrayList<Person>();
-	private static ArrayList<Handler>	handlers			= new ArrayList<>();
 	private static Person				currentPerson;
 	private static ObservableList<Node> currentUserList;
 	private static Label 				anzahlPersonenAnzeige;
@@ -47,24 +47,60 @@ public class MainApp extends Application {
 	private static MainApp appInstance;
 	private static long starttime;
 	private static VBox currentVBox;
+	
+	/*
+	 * 
+	 * START UP
+	 * 
+	 */
 
 	public static void main(String[] args) {
 		
 		starttime = System.currentTimeMillis();
 
-		initHandlers();
 		launch("gui.fxml");
 	}
 
-	/**
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		
+		DataReader.readTextFilesForInitialization();
+
+		starttime = System.currentTimeMillis();
+		System.out.println("Baue GUI auf...");
+		
+		stage = primaryStage;
+		
+		startWindow(getParameters().getUnnamed().get(0));
+
+		System.out.println("GUI hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert (incl CY)");
+	}
+
+	private void startWindow(String fxmlName) {
+		
+		appInstance = this;
+
+		Pane pane = null;
+		try {
+			pane = FXMLLoader.load(getClass().getResource(fxmlName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Scene scene = new Scene(pane);
+		stage.setTitle("Message Organizer");
+		scene.setUserData(fxmlName);
+		GuiController.initMainWindow(scene);
+		stage.setScene(scene);
+		stage.show();
+		
+		refreshAnzeige();
+	}
+	
+	/*
+	 * 
+	 * LADEN DER LISTEN
 	 * 
 	 */
-	private static void initHandlers() {
-
-		handlers.add(new MessageHandler());
-		handlers.add(new ParticipantHandler());
-		handlers.add(new PersonHandler());
-	}
 
 	public static void showAll(VBox vBox) {
 
@@ -92,20 +128,6 @@ public class MainApp extends Application {
 		});
 	}
 
-	/**
-	 * @param person
-	 * @return
-	 */
-	private static boolean hasMessageFromMe(Person person) {
-		
-		for (Message message : person.getMessages()) {
-			
-			if(message.getSender_name().equals("Christian Wiegand")) return true;
-		}
-		
-		return false;
-	}
-
 	public static void showWritten(VBox vBox) {
 
 		currentUserList = vBox.getChildren();
@@ -124,98 +146,6 @@ public class MainApp extends Application {
 				addToCurrentGUIList(vBox.getId(), person);
 			}
 		});
-	}
-
-	public static void showGroup(VBox vBox) {
-
-		currentUserList = vBox.getChildren();
-		ArrayList<String> ok = new ArrayList<>();
-		ArrayList<String> notOk = new ArrayList<>();
-		
-		ok.add("https://www.facebook.com/groups/197111937786655/");
-		notOk.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
-		notOk.add("https://youtu.be/opBGuztAvtw");
-		notOk.add("https://youtu.be/gJxp4loJyyA");
-
-		addPeopleWithRightMessagesToCurrentGUIList(vBox.getId(), ok, notOk);
-	}
-	
-	public static void showVideo(VBox vBox) {
-		
-		currentUserList = vBox.getChildren();
-		ArrayList<String> ok = new ArrayList<>();
-		ArrayList<String> notOk = new ArrayList<>();
-		
-		ok.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
-		ok.add("https://youtu.be/opBGuztAvtw");
-		ok.add("https://youtu.be/gJxp4loJyyA");
-		
-		addPeopleWithRightMessagesToCurrentGUIList(vBox.getId(), ok, notOk);
-	}
-	
-	private static void addPeopleWithRightMessagesToCurrentGUIList(String status, ArrayList<String> okList, ArrayList<String> notOkList) {
-
-		currentUserList.removeAll(currentUserList);
-		
-		persons.forEach(person -> {
-			
-			if(checkContain(okList, person) && !checkContain(notOkList, person)) {
-				
-				addToCurrentGUIList(status, person);
-			}
-		});
-	}
-
-	public static void showCustomers(VBox vBoxKunden) {
-
-		currentUserList = vBoxKunden.getChildren();
-		
-		vBoxKunden.getChildren().clear();
-		
-		H.getLines(customersPath).forEach(personString -> {
-			
-			Person person = getPersonInPersonList(personString);
-				
-			moveToVBox(person, vBoxKunden);
-		});
-	}
-
-	/**
-	 * @param person
-	 * @param vBoxTo
-	 */
-	private static void moveToVBox(Person person, VBox vBoxTo) {
-		
-		removeFromGUIList(person);
-		addToGUIList(vBoxTo, person);
-		
-		person.setState(vBoxTo.getId());
-		
-		if (person.getStatusLabel() != null) {
-			
-			person.getStatusLabel().setText(vBoxTo.getId());
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	private static void moveToVBox(ArrayList<Person> persons, VBox vBoxTo) {
-
-		Collections.sort(persons);
-		
-		vBoxTo.getChildren().clear();
-
-		persons.forEach(person -> moveToVBox(person, vBoxTo));
-	}
-
-	/**
-	 * @param person
-	 * @return
-	 */
-	private static VBox getCurrentVBox4Person(Person person) {
-
-		String state = person.getState();
-		VBox vBoxOld = GuiController.getVBox(state);
-		return vBoxOld;
 	}
 
 	public static void showInGroup(VBox vBoxInGroup) {
@@ -247,6 +177,20 @@ public class MainApp extends Application {
 		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
 	}
 
+	private static boolean isAusnahme(String name) {
+
+		File ausnahmeFile = new File(ausnahmePath);
+		
+		for (String kackLine : H.getLines(ausnahmeFile)) {
+
+			String line = H.cleanUp(kackLine);
+			
+			if(line.equals(name)) return true;
+		}
+		
+		return false;
+	}
+
 	public static void showNachzufassen(VBox vBox) {
 
 		currentUserList = vBox.getChildren();
@@ -258,6 +202,118 @@ public class MainApp extends Application {
 				addToCurrentGUIList(null, person);
 			}
 		});
+	}
+
+	public static void showGroup(VBox vBox) {
+
+		currentUserList = vBox.getChildren();
+		ArrayList<String> ok = new ArrayList<>();
+		ArrayList<String> notOk = new ArrayList<>();
+		
+		ok.add("https://www.facebook.com/groups/197111937786655/");
+		notOk.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
+		notOk.add("https://youtu.be/opBGuztAvtw");
+		notOk.add("https://youtu.be/gJxp4loJyyA");
+
+		addPeopleWithRightMessagesToCurrentGUIList(vBox.getId(), ok, notOk);
+	}
+	
+	public static void showVideo(VBox vBox) {
+		
+		currentUserList = vBox.getChildren();
+		ArrayList<String> ok = new ArrayList<>();
+		ArrayList<String> notOk = new ArrayList<>();
+		
+		ok.add("https://www.youtube.com/watch?v=A2_xGg_O2lE");
+		ok.add("https://youtu.be/opBGuztAvtw");
+		ok.add("https://youtu.be/gJxp4loJyyA");
+		
+		addPeopleWithRightMessagesToCurrentGUIList(vBox.getId(), ok, notOk);
+	}
+
+	public static void showCustomers(VBox vBoxKunden) {
+
+		currentUserList = vBoxKunden.getChildren();
+		
+		vBoxKunden.getChildren().clear();
+		
+		H.getLines(customersPath).forEach(personString -> {
+			
+			Person person = getPersonInPersonList(personString);
+				
+			moveToVBox(person, vBoxKunden);
+		});
+	}
+	
+	/*
+	 * 
+	 * HELPERS
+	 * 
+	 */
+
+	/**
+	 * @param person
+	 * @return
+	 */
+	private static boolean hasMessageFromMe(Person person) {
+		
+		for (Message message : person.getMessages()) {
+			
+			if(message.getSender_name().equals("Christian Wiegand")) return true;
+		}
+		
+		return false;
+	}
+	
+	private static void addPeopleWithRightMessagesToCurrentGUIList(String status, ArrayList<String> okList, ArrayList<String> notOkList) {
+
+		currentUserList.removeAll(currentUserList);
+		
+		persons.forEach(person -> {
+			
+			if(checkContain(okList, person) && !checkContain(notOkList, person)) {
+				
+				addToCurrentGUIList(status, person);
+			}
+		});
+	}
+
+	/**
+	 * @param person
+	 * @param vBoxTo
+	 */
+	private static void moveToVBox(Person person, VBox vBoxTo) {
+		
+		removeFromGUIList(person);
+		addToGUIList(vBoxTo, person);
+		
+		person.setState(vBoxTo.getId());
+		
+		if (person.getStatusLabel() != null) {
+			
+			person.getStatusLabel().setText(vBoxTo.getId());
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static void moveToVBox(ArrayList<Person> persons, VBox vBoxTo) {
+
+//		Collections.sort(persons);
+		
+		vBoxTo.getChildren().clear();
+
+		persons.forEach(person -> moveToVBox(person, vBoxTo));
+	}
+
+	/**
+	 * @param person
+	 * @return
+	 */
+	private static VBox getCurrentVBox4Person(Person person) {
+
+		String state = person.getState();
+		VBox vBoxOld = GuiController.getVBox(state);
+		return vBoxOld;
 	}
 
 	private static Person getPersonInPersonList(String name) {
@@ -288,135 +344,6 @@ public class MainApp extends Application {
 			}
 		}
 		return contains;
-	}
-
-	private static void readTextFilesForInitialization() {
-
-		starttime = System.currentTimeMillis();
-		System.out.println("Lese Freunde ein...");
-		readFriendsFromFile();
-		System.out.println("Freunde hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
-
-		starttime = System.currentTimeMillis();
-		System.out.println("Lese Messages ein...");
-		readMessagesFromFile();
-		System.out.println("Messages hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
-
-		starttime = System.currentTimeMillis();
-		System.out.println("Lese Properties ein...");
-		readPropertiesFromFile();
-		System.out.println("Properties hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
-	}
-
-	/**
-	 * 
-	 */
-	private static void readFriendsFromFile() {
-
-		String friendsText = H.readFile(friendsPath);
-		
-		JSONObject jsonArrObj = new JSONObject(friendsText);
-		JSONArray jsonArr = jsonArrObj.getJSONArray("friends");
-		
-		jsonArr.forEach(friendObj -> {
-			
-			JSONObject fjo = (JSONObject) friendObj;
-			String friendString = H.cleanUp(fjo.get("name").toString());
-			
-			if (!isAusnahme(friendString)) {
-				
-				long friendsSince = (long) (int)fjo.get("timestamp");
-				Person newPerson = new Person().withTitle(friendString);
-				newPerson.setFriendsSince(friendsSince*1000);
-				
-				persons.add(newPerson);
-				
-//				System.out.println(newPerson.getTitle() + " angelegt");
-			}
-		});
-	}
-
-	/**
-	 * 
-	 */
-	@SuppressWarnings("unchecked")
-	private static void readMessagesFromFile() {
-
-		File folder = new File(inboxPath);
-		File[] listOfFiles = folder.listFiles();
-		for (File node : listOfFiles) {
-			
-			if (node.isFile()) continue;
-			
-			JSONObject jsonObj = new JSONObject(H.readFile(node.getPath() + "\\message.json"));
-			
-			if (!jsonObj.has("title")) continue;
-			String title = H.cleanUp(jsonObj.get("title").toString());
-			if (isAusnahme(title)) continue;
-			
-			Person thisPerson = getPersonInPersonList(title);
-			
-			if(thisPerson == null) {
-				
-//				System.out.println(title + " war null in getMessages()");
-				continue;
-			}
-			
-			setCurrentPerson(thisPerson);
-			readMessageFileAttributes(jsonObj);
-		}
-		
-		Collections.sort(persons);
-	}
-
-	private static void readPropertiesFromFile() {
-
-		String properties = H.readFile(properiesPath);
-		
-		JSONObject jsonObj = new JSONObject(properties);
-		JSONArray jsonArr = jsonObj.getJSONArray("properties");
-		
-		for(Object propertyObj : jsonArr){
-			
-			JSONObject propertyJsonObj = (JSONObject) propertyObj;
-			String name = propertyJsonObj.get("name").toString(); // Achtung, hier wird kein H.cleanUp gemacht, weil ich davon ausgehe, dass es dort immer sauber reingeschrieben wird
-			
-			Person person = getPersonInPersonList(name);
-			
-			if(person == null) {
-				
-				System.out.println(name + " war nicht bei den Personen, aber in der property Liste");
-				
-				continue;
-			}
-			
-			propertyJsonObj.keys().forEachRemaining(key -> {
-				
-				if(key.equals("nachfassen")) {
-					
-					person.setNachfassen(propertyJsonObj.getLong(key));
-				}
-				
-				if(key.equals("notes")) {
-					
-					person.setNotes(propertyJsonObj.getString(key));
-				}
-			});
-		}
-	}
-
-	private static boolean isAusnahme(String name) {
-
-		File ausnahmeFile = new File(ausnahmePath);
-		
-		for (String kackLine : H.getLines(ausnahmeFile)) {
-
-			String line = H.cleanUp(kackLine);
-			
-			if(line.equals(name)) return true;
-		}
-		
-		return false;
 	}
 	
 	private static void addToCurrentGUIList(String status, Person person) {
@@ -544,42 +471,6 @@ public class MainApp extends Application {
 		return messages.get(messages.size()-1);
 	}
 
-	/**
-	 * @param jsonObj
-	 * @param newPerson
-	 */
-	private static void readMessageFileAttributes(JSONObject jsonObj) {
-
-		jsonObj.keys().forEachRemaining(key -> {
-			
-			if (H.isJsonArray(jsonObj, key)) {
-				
-				handle(key, jsonObj.getJSONArray(key));
-			}
-			else {
-				
-				PersonCreator ps = new PersonCreator();
-				ps.setValue(currentPerson, key, jsonObj.get(key), null);
-			}
-		});
-	}
-
-	/**
-	 * @param key
-	 * @param value
-	 * 
-	 */
-	private static void handle(String key, JSONArray value) {
-
-		boolean success = false;
-		for (Handler h : handlers) {
-			success = h.handle(key, value) || success;
-		}
-		if (!success) {
-			System.out.println("Not handled: key " + key + " value " + value);
-		}
-	}
-
 	public static Person getCurrentPerson() {
 
 		return currentPerson;
@@ -588,41 +479,6 @@ public class MainApp extends Application {
 	public static void setCurrentPerson(Person currentPerson) {
 
 		MainApp.currentPerson = currentPerson;
-	}
-
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-		
-		readTextFilesForInitialization();
-
-		starttime = System.currentTimeMillis();
-		System.out.println("Baue GUI auf...");
-		
-		stage = primaryStage;
-		
-		startWindow(getParameters().getUnnamed().get(0));
-
-		System.out.println("GUI hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert (incl CY)");
-	}
-
-	private void startWindow(String fxmlName) {
-		
-		appInstance = this;
-
-		Pane pane = null;
-		try {
-			pane = FXMLLoader.load(getClass().getResource(fxmlName));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		Scene scene = new Scene(pane);
-		stage.setTitle("Message Organizer");
-		scene.setUserData(fxmlName);
-		GuiController.initMainWindow(scene);
-		stage.setScene(scene);
-		stage.show();
-		
-		refreshAnzeige();
 	}
 
 

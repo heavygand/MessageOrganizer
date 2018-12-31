@@ -3,9 +3,38 @@ package de.ks.messageOrg.model;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public class Message extends Node {
+import javax.persistence.*;
 
+@Entity
+public class Message{
+	
+	// JPA stuff that we need
+	private static final String			PERSISTENCE_UNIT_NAME	= "messages";
+	private static EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+	private static EntityManager em = factory.createEntityManager();
+
+    
+	/**
+	 * @return the em
+	 */
+	public static EntityManager getEm() {
+	
+		return em;
+	}
+    
+	public Message() {
+	}
+
+	public Message(String sender_name, long timestamp_ms, String content, String type) {
+		
+		this.sender_name = sender_name;
+		this.timestamp_ms = timestamp_ms;
+		this.content = content;
+		this.type = type;
+	}
+	
     private String sender_name;
+    @Id
     private long timestamp_ms;
     private String content;
     private String type;
