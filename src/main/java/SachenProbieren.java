@@ -1,69 +1,29 @@
-import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.poi.hpsf.Array;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import de.ks.messageOrg.model.Person;
 import helpers.H;
 
 public class SachenProbieren {
-	private static String				properiesPath	= "./docs/properties";
 
 	public static void main(String[] args) {
 		
-		readPropertiesFromFile();
-	}
-	
-	private static void readPropertiesFromFile() {
+//		EntityManager em = Person.getEm();
+		
+//		em.getTransaction().begin();
+//		
+//		em.createNativeQuery("SET NAMES utf8mb4").executeUpdate();
+		
+//		Query query = em.createNativeQuery("select * from ausnahmen where title = 'Jindřich Prášil' or title = 'Leon Klaßen'");//
 
-		String properties = H.readFile(properiesPath);
+//		em.getTransaction().commit();
+//		em.close();
 		
-		JSONObject jsonObj = new JSONObject(properties);
-		JSONArray jsonArr = jsonObj.getJSONArray("properties");
-		
-		for(Object propertyObj : jsonArr){
-			
-			JSONObject propertyJsonObj = (JSONObject) propertyObj;
-			String name = H.cleanUp(propertyJsonObj.get("name").toString());
-			
-			Person person = getPersonInPersonList(name);
-			
-			if(person == null) {
-				
-				System.out.println(name + " war nicht bei den Personen, aber in der property Liste");
-				continue;
-			}
-			
-			propertyJsonObj.keys().forEachRemaining(key -> {
-				
-				if(key.equals("nachfassen")) {
-					
-					person.setNachfassen(propertyJsonObj.getLong(key));
-				}
-				
-				if(key.equals("notes")) {
-					
-					person.setNotes(propertyJsonObj.getString(key));
-				}
-			});
+		for (String kackLine : H.getLines("./docs/ausgenommen")) {
+
+			String line = H.cleanUp(kackLine);
 		}
-	}
-
-	private static Person getPersonInPersonList(String name) {
-
-		ArrayList<Person> persons = new ArrayList();
-		
-		persons.add(new Person().withTitle("Alexander H�tzl"));
-		persons.add(new Person().withTitle("Frank Walter"));
-		persons.add(new Person().withTitle("Julius Freund"));
-		persons.add(new Person().withTitle("Nadine Kaiser"));
-		
-		for (Person person : persons ) {
-			
-			if(person.getTitle().equals(name)) return person;
-		}
-		
-		return null;
 	}
 }

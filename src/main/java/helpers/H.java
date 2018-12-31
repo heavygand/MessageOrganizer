@@ -19,6 +19,8 @@ import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.github.junrar.UnrarCallback;
+
 public class H {
 	
 	/*
@@ -299,29 +301,40 @@ public class H {
 		CharsetDetector detector = new CharsetDetector();
 		detector.setText(data.getBytes());
 		String charSetName = detector.detect().getName();
+		int confidence = detector.detect().getConfidence();
 		
 		if (charSetName.equals("ISO-8859-1")) {
 			
-//			if (data.contains("Alexander H")) {
-//				System.out.println(data + " muss nicht umgewandelt werden.");
-//			}
+//			System.out.println(" und muss nicht umgewandelt werden.");
 			return data;
 		}		
 		
 		String result = null;
 		try {
+			
 			result = new String(data.getBytes("ISO-8859-1"), "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+		}
+		catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 		
-//		if (data.contains("Alexander H") && !data.equals(result)) {
-//			
-//			System.out.println(data);
-//			System.out.println("wurde geändert zu");
-//			System.out.println(result);
-//			System.out.println("Charset war " + charSetName);
-//		}
+		
+		if (!data.equals(result)) {
+			
+			String UTF8toISO885915 = null;
+			String ISO885915toUTF8 = null;
+			
+			try {
+				
+				UTF8toISO885915 = new String(data.getBytes("UTF-8"), "ISO-8859-15");
+				ISO885915toUTF8 = new String(data.getBytes("ISO-8859-15"), "UTF-8");
+			} catch (UnsupportedEncodingException e) {e.printStackTrace();}
+			
+			System.out.println(data + " => " + result + " | " + confidence + "% " + charSetName);
+			System.out.println("UTF8toISO885915: " + UTF8toISO885915);
+			System.out.println("ISO885915toUTF8: " + ISO885915toUTF8);
+			System.out.println("");
+		}
 		return result;
 	}
 	

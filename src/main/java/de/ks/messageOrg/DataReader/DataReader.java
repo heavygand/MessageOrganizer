@@ -70,7 +70,7 @@ public class DataReader {
 			
 			for (Message message : person.getMessages()) {
 				
-				Query query2 = em.createNativeQuery("INSERT INTO messages "
+				Query query2 = em.createNativeQuery("INSERT IGNORE INTO messages "
 						+ "(id, CONTENT, SENDER_NAME, TIMESTAMP_MS, TYPE) "
 						+ "values (?, ?, ?, ?, ?)");
 				query2.setParameter(1, person.getThread_path());	// id
@@ -94,6 +94,18 @@ public class DataReader {
 				}
 			}
 		}
+		// Ausnahmen
+		File ausnahmeFile = new File(ausnahmePath);
+		
+		for (String kackLine : H.getLines(ausnahmeFile)) {
+
+			String line = H.cleanUp(kackLine);
+			System.out.println("Inserte " + line);
+			Query query3 = em.createNativeQuery("INSERT IGNORE INTO ausnahmen (title) values (?)");
+			query3.setParameter(1, line);
+			query3.executeUpdate();
+		}
+		
 		em.getTransaction().commit();
 		em.close();
 		
