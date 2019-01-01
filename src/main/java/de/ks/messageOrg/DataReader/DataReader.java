@@ -19,17 +19,20 @@ public class DataReader {
 	private static String				inboxPath			= "C:\\Users\\erikd\\Downloads\\messages\\inbox";
 	private static String				friendsPath			= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
 	private static String				generatedPathDB		= "C:\\Users\\erikd\\Dropbox\\Apps\\MessageOrganizer\\writeToList.txt";
-	private static String				ausnahmePath		= "./docs/ausgenommen";
 	private static String				blackListPath		= "./docs/blacklist";
-	private static String				properiesPath		= "./docs/properties";
-	private static String				cyPath				= "./docs/CY.txt";
-	private static String				customersPath		= "./docs/Kunden.txt";
+	private static String				createPersonsFile	= "./docs/createPersons.txt";
+	private static String				createMessagesFile	= "./docs/createMessages.txt";
+	private static String				createPropertiesFile= "./docs/createProperties.txt";
 	private static ArrayList<Person>	persons				= new ArrayList<Person>();
-	private static long starttime;
 	private static Person currentPerson;
 	private static List<String> ausnahmenList;
 
 	public static void main(String[] args) {
+		
+		readJsonData();
+	}
+	
+	public static void readJsonData() {
 		
 		EntityManager em = Person.getEm();
 		
@@ -37,45 +40,37 @@ public class DataReader {
 		em.createNativeQuery("SET NAMES utf8mb4").executeUpdate();
 		
 		// Ausnahmen abrufen
-		ausnahmenList = em.createNativeQuery("select * from ausnahmen").getResultList();
+		readAusnahmen(em);
 		
 		readTextFilesForInitialization();
 		
 		System.out.println("Persistiere alles...");
 		
 		em.createNativeQuery("drop table persons").executeUpdate();
-		em.createNativeQuery("CREATE TABLE `persons` (`title` VARCHAR(100) NOT NULL,`state` VARCHAR(100) NULL DEFAULT NULL,`id` VARCHAR(100) NULL DEFAULT NULL,`notes` VARCHAR(3000) NULL DEFAULT NULL,`nachfassen` BIGINT(20) NULL DEFAULT NULL,`lastReaction` BIGINT(20) NULL DEFAULT NULL,`friendsSince` BIGINT(20) NOT NULL,`firstContact` BIGINT(20) NULL DEFAULT NULL,`threadType` VARCHAR(50) NULL DEFAULT NULL,`isStillParticipant` BIT(1) NULL DEFAULT NULL,PRIMARY KEY (`title`, `friendsSince`))COLLATE='utf8_general_ci'ENGINE=InnoDB;").executeUpdate();
+		em.createNativeQuery(H.readFile(createPersonsFile)).executeUpdate();
+		
+		em.createNativeQuery("drop table messages").executeUpdate();
+		em.createNativeQuery(H.readFile(createMessagesFile)).executeUpdate();
 		
 		// FREUNDE
 		for (Person person : persons) {
 			
-			Query query = em.createNativeQuery("INSERT INTO persons "
-					+ "(title, state, id, notes, nachfassen, lastReaction, friendsSince, firstContact, threadType, isStillParticipant) "
-					+ "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) "
-					+ "ON DUPLICATE KEY UPDATE "
-					+ "state = ?, notes = ?, nachfassen = ?, lastReaction = ?, isStillParticipant = ?");
+			Query query = em.createNativeQuery("INSERT IGNORE INTO persons "
+					+ "(title, id, lastReaction, friendsSince, firstContact, threadType, isStillParticipant) "
+					+ "values (?, ?, ?, ?, ?, ?, ?) ");
 			
 			// Values
 			query.setParameter(1, person.getTitle());					// title
-			query.setParameter(2, person.getState());					// state
-			query.setParameter(3, person.getThread_path());				// id
-			query.setParameter(4, person.getNotes());					// notes
-			query.setParameter(5, person.getNachfassen());				// nachfassen
-			query.setParameter(6, person.getLastContact());				// lastReaction
-			query.setParameter(7, person.getFriendsSince());			// friendsSince
-			query.setParameter(8, person.getFirstContact());			// firstContact
-			query.setParameter(9, person.getThread_type());				// threadType
-			query.setParameter(10, person.getIs_still_participant());	// isStillParticipant
-			
-			// ON DUPLICATE KEY UPDATE
-			query.setParameter(11, person.getState());					// state
-			query.setParameter(12, person.getNotes());					// notes
-			query.setParameter(13, person.getNachfassen());				// nachfassen
-			query.setParameter(14, person.getLastContact());			// lastReaction
-			query.setParameter(15, person.getIs_still_participant());	// isStillParticipant
+			query.setParameter(2, person.getThread_path());				// id
+			query.setParameter(3, person.getLastContact());				// lastReaction
+			query.setParameter(4, person.getFriendsSince());			// friendsSince
+			query.setParameter(5, person.getFirstContact());			// firstContact
+			query.setParameter(6, person.getThread_type());				// threadType
+			query.setParameter(7, person.getIs_still_participant());	// isStillParticipant
 			
 			query.executeUpdate();
 			
+			// NACHRICHTEN
 			for (Message message : person.getMessages()) {
 				
 				Query query2 = em.createNativeQuery("INSERT IGNORE INTO messages "
@@ -86,30 +81,9 @@ public class DataReader {
 				query2.setParameter(3, message.getSender_name());	// SENDER_NAME
 				query2.setParameter(4, message.getTimestamp_ms());	// TIMESTAMP_MS
 				query2.setParameter(5, message.getType());			// TYPE
-				try {
-					
-					query2.executeUpdate();
-				}
-				catch (PersistenceException e) {
-					
-					System.out.println("Es geht um folgendes: ");
-					System.out.println(person.getThread_path());
-					System.out.println(message.getContent());
-					System.out.println(message.getSender_name());
-					System.out.println(message.getTimestamp_ms());
-					System.out.println(message.getType());
-					e.printStackTrace();
-				}
+				
+				query2.executeUpdate();
 			}
-		}
-		// Ausnahmen
-		File ausnahmeFile = new File(ausnahmePath);
-		
-		for (String line : H.getLines(ausnahmeFile)) {
-
-			Query query3 = em.createNativeQuery("INSERT IGNORE INTO ausnahmen (title) values (?)");
-			query3.setParameter(1, line);
-			query3.executeUpdate();
 		}
 		
 		em.getTransaction().commit();
@@ -119,22 +93,22 @@ public class DataReader {
 	}
 
 
-	public static void readTextFilesForInitialization() {
+	/**
+	 * @param em
+	 */
+	private static void readAusnahmen(EntityManager em) {
 
-		starttime = System.currentTimeMillis();
+		ausnahmenList = em.createNativeQuery("select * from ausnahmen").getResultList();
+	}
+
+
+	private static void readTextFilesForInitialization() {
+
 		System.out.println("Lese Freunde ein...");
 		readFriendsFromFile();
-		System.out.println("Freunde hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
 
-		starttime = System.currentTimeMillis();
 		System.out.println("Lese Messages ein...");
 		readMessagesFromFile();
-		System.out.println("Messages hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
-
-		starttime = System.currentTimeMillis();
-		System.out.println("Lese Properties ein...");
-		readPropertiesFromFile();
-		System.out.println("Properties hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert");
 	}
 
 	/**
@@ -163,6 +137,41 @@ public class DataReader {
 //				if(newPerson.getTitle().startsWith("Andre R"))System.out.println(newPerson.getTitle() + " angelegt");
 			}
 		});
+	}
+
+	private static Message getLastMessageFromPerson(Person person) {
+
+		ArrayList<Message> messages = person.getMessages();
+		
+		for(Message message : messages) {
+			
+			if(message.getSender_name().equals(person.getTitle())) {
+				
+				return message;
+			}
+		}
+		
+		return null;
+	}
+
+	private static Message getLastMessage(Person person) {
+		
+		return person.getMessages().get(0);
+	}
+
+	private static Message getFirstMessage(Person person) {
+
+		ArrayList<Message> messages = person.getMessages();
+		return messages.get(messages.size()-1);
+	}
+
+	public static boolean isAusnahme(String name2Check, EntityManager em) {
+		
+		if(ausnahmenList == null) readAusnahmen(em);
+		
+		if(ausnahmenList.contains(name2Check)) return true;
+		
+		return false;
 	}
 
 	private static boolean isAusnahme(String name2Check) {
@@ -197,11 +206,15 @@ public class DataReader {
 				continue;
 			}
 			
-			setCurrentPerson(thisPerson);
+			currentPerson = thisPerson;
 			readMessageFileAttributes(jsonObj);
+			
+			long timeStampLongFirst = thisPerson.getMessages().isEmpty() ? 0 : getFirstMessage(thisPerson).getTimestamp_ms();        
+			thisPerson.setFirstContact(timeStampLongFirst);
+
+			long timeStampLongLast = getLastMessageFromPerson(thisPerson)==null ? 0 : getLastMessageFromPerson(thisPerson).getTimestamp_ms();        
+			thisPerson.setLastContact(timeStampLongLast);
 		}
-		
-//		Collections.sort(persons);
 	}
 
 	private static Person getPersonInPersonList(String name) {
@@ -212,52 +225,6 @@ public class DataReader {
 		}
 		
 		return null;
-	}
-
-	private static void readPropertiesFromFile() {
-
-		String properties = H.readFile(properiesPath);
-		
-		JSONObject jsonObj = new JSONObject(properties);
-		JSONArray jsonArr = jsonObj.getJSONArray("properties");
-		
-		for(Object propertyObj : jsonArr){
-			
-			JSONObject propertyJsonObj = (JSONObject) propertyObj;
-			String name = propertyJsonObj.get("name").toString(); // Achtung, hier wird kein H.cleanUp gemacht, weil ich davon ausgehe, dass es dort immer sauber reingeschrieben wird
-			
-			Person person = getPersonInPersonList(name);
-			
-			if(person == null) {
-				
-				System.out.println(name + " war nicht bei den Personen, aber in der property Liste");
-				
-				continue;
-			}
-			
-			propertyJsonObj.keys().forEachRemaining(key -> {
-				
-				if(key.equals("nachfassen")) {
-					
-					person.setNachfassen(propertyJsonObj.getLong(key));
-				}
-				
-				if(key.equals("notes")) {
-					
-					person.setNotes(propertyJsonObj.getString(key));
-				}
-			});
-		}
-	}
-
-	public static Person getCurrentPerson() {
-
-		return currentPerson;
-	}
-
-	public static void setCurrentPerson(Person currentPerson) {
-
-		DataReader.currentPerson = currentPerson;
 	}
 
 	/**
@@ -306,16 +273,25 @@ public class DataReader {
 	        	
 	    		JSONObject messageData = (JSONObject)str;
 	    		
-	    		setAttributes(newMessage, messageData);
+	    		if(setAttributes(newMessage, messageData)){
 	    		
-	    		messages.add(newMessage);
+	    			messages.add(newMessage);
+	    		}
 	    	});
 	    	
 	    	currentPerson.setMessages(messages);
     	}
 	}
 	
-	private static void setAttributes(Message message, JSONObject messageObject) {
+	
+	/**
+	 * @param message
+	 * @param messageObject
+	 * @return If setting was successfull
+	 */
+	private static boolean setAttributes(Message message, JSONObject messageObject) {
+		
+		if(((String)messageObject.get("content")).contains("Sag deinem/r neuen Facebook-Freund/in")) return false;
 		
 		MessageCreator mc = new MessageCreator();
 
@@ -323,5 +299,7 @@ public class DataReader {
 			
 			mc.setValue(message, messObjKey, messageObject.get(messObjKey), null);
 		});
+		
+		return true;
 	}
 }

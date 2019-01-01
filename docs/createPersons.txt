@@ -1,0 +1,13 @@
+CREATE TABLE `persons` (
+	`title` VARCHAR(100) NOT NULL,
+	`id` VARCHAR(255) NOT NULL,
+	`lastReaction` BIGINT(20) NULL DEFAULT NULL,
+	`friendsSince` BIGINT(20) NOT NULL,
+	`firstContact` BIGINT(20) NULL DEFAULT NULL,
+	`threadType` VARCHAR(50) NULL DEFAULT NULL,
+	`isStillParticipant` BIT(1) NULL DEFAULT NULL,
+	PRIMARY KEY (`title`, `friendsSince`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+;

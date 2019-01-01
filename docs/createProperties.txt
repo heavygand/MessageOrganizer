@@ -1,0 +1,11 @@
+CREATE TABLE `properties` (
+	`title` VARCHAR(100) NOT NULL,
+	`state` VARCHAR(100) NULL DEFAULT NULL,
+	`notes` VARCHAR(3000) NULL DEFAULT NULL,
+	`nachfassen` BIGINT(20) NULL DEFAULT NULL,
+	`friendsSince` BIGINT(20) NOT NULL,
+	PRIMARY KEY (`title`, `friendsSince`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+;

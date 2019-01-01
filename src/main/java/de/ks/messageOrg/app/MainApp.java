@@ -39,14 +39,9 @@ public class MainApp extends Application {
 	private static ArrayList<Person>	persons				= new ArrayList<Person>();
 	private static ArrayList<Person> 	personListInGroup	= new ArrayList<Person>();
 	private static ArrayList<Person>	personListUnwritten	= new ArrayList<Person>();
-	private static Person				currentPerson;
-	private static ObservableList<Node> currentUserList;
-	private static Label 				anzahlPersonenAnzeige;
 	private final int 					daysBack			= 3;
 	private Stage stage;
 	private static MainApp appInstance;
-	private static long starttime;
-	private static VBox currentVBox;
 	
 	/*
 	 * 
@@ -55,8 +50,6 @@ public class MainApp extends Application {
 	 */
 
 	public static void main(String[] args) {
-		
-		starttime = System.currentTimeMillis();
 
 		launch("gui.fxml");
 	}
@@ -64,16 +57,13 @@ public class MainApp extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		DataReader.readTextFilesForInitialization();
+		DataReader.readJsonData();
 
-		starttime = System.currentTimeMillis();
 		System.out.println("Baue GUI auf...");
 		
 		stage = primaryStage;
 		
 		startWindow(getParameters().getUnnamed().get(0));
-
-		System.out.println("GUI hat " + H.getSeconds(System.currentTimeMillis() - starttime) + " sekunden gedauert (incl CY)");
 	}
 
 	private void startWindow(String fxmlName) {
@@ -94,6 +84,26 @@ public class MainApp extends Application {
 		stage.show();
 		
 		refreshAnzeige();
+	}
+
+	private void showPerson(Person person) {
+		
+		String name = person.getTitle();
+
+		Pane pane = null;
+		try {
+			pane = FXMLLoader.load(getClass().getResource("personWindow.fxml"));
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+        Stage stage = new Stage();
+        stage.setTitle("Eigenschaften von " + name);
+        Scene scene = new Scene(pane, 1200, 900);
+		stage.setScene(scene);
+		GuiController.initPersonWindow(scene, person);
+        stage.show();
 	}
 	
 	/*
@@ -175,20 +185,6 @@ public class MainApp extends Application {
 		});
 		
 		System.out.println("CY Gruppenmitglieder hat " + H.getSeconds(System.currentTimeMillis() - newStarttime) + " sekunden gedauert");
-	}
-
-	private static boolean isAusnahme(String name) {
-
-		File ausnahmeFile = new File(ausnahmePath);
-		
-		for (String kackLine : H.getLines(ausnahmeFile)) {
-
-			String line = H.cleanUp(kackLine);
-			
-			if(line.equals(name)) return true;
-		}
-		
-		return false;
 	}
 
 	public static void showNachzufassen(VBox vBox) {
@@ -425,26 +421,6 @@ public class MainApp extends Application {
 		}
 	}
 
-	private void showPerson(Person person) {
-		
-		String name = person.getTitle();
-
-		Pane pane = null;
-		try {
-			pane = FXMLLoader.load(getClass().getResource("personWindow.fxml"));
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-        Stage stage = new Stage();
-        stage.setTitle("Eigenschaften von " + name);
-        Scene scene = new Scene(pane, 1200, 900);
-		stage.setScene(scene);
-		GuiController.initPersonWindow(scene, person);
-        stage.show();
-	}
-
 	private static Message getLastMessageFromPerson(Person person) {
 
 		ArrayList<Message> messages = person.getMessages();
@@ -460,37 +436,6 @@ public class MainApp extends Application {
 		return null;
 	}
 
-	private static Message getLastMessage(Person person) {
-		
-		return person.getMessages().get(0);
-	}
-
-	private static Message getFirstMessage(Person person) {
-
-		ArrayList<Message> messages = person.getMessages();
-		return messages.get(messages.size()-1);
-	}
-
-	public static Person getCurrentPerson() {
-
-		return currentPerson;
-	}
-
-	public static void setCurrentPerson(Person currentPerson) {
-
-		MainApp.currentPerson = currentPerson;
-	}
-
-
-	/**
-	 * @return the anzeige
-	 */
-	public static Label getAnzeige() {
-	
-		return anzahlPersonenAnzeige;
-	}
-
-	
 	/**
 	 * @param anzeige the anzeige to set
 	 */
