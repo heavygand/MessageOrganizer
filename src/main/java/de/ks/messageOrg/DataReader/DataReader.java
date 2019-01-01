@@ -27,18 +27,26 @@ public class DataReader {
 	private static ArrayList<Person>	persons				= new ArrayList<Person>();
 	private static long starttime;
 	private static Person currentPerson;
+	private static List<String> ausnahmenList;
 
 	public static void main(String[] args) {
-		
-		readTextFilesForInitialization();
-		
-		System.out.println("Persistiere alles...");
 		
 		EntityManager em = Person.getEm();
 		
 		em.getTransaction().begin();
 		em.createNativeQuery("SET NAMES utf8mb4").executeUpdate();
 		
+		// Ausnahmen abrufen
+		ausnahmenList = em.createNativeQuery("select * from ausnahmen").getResultList();
+		
+		readTextFilesForInitialization();
+		
+		System.out.println("Persistiere alles...");
+		
+		em.createNativeQuery("drop table persons").executeUpdate();
+		em.createNativeQuery("CREATE TABLE `persons` (`title` VARCHAR(100) NOT NULL,`state` VARCHAR(100) NULL DEFAULT NULL,`id` VARCHAR(100) NULL DEFAULT NULL,`notes` VARCHAR(3000) NULL DEFAULT NULL,`nachfassen` BIGINT(20) NULL DEFAULT NULL,`lastReaction` BIGINT(20) NULL DEFAULT NULL,`friendsSince` BIGINT(20) NOT NULL,`firstContact` BIGINT(20) NULL DEFAULT NULL,`threadType` VARCHAR(50) NULL DEFAULT NULL,`isStillParticipant` BIT(1) NULL DEFAULT NULL,PRIMARY KEY (`title`, `friendsSince`))COLLATE='utf8_general_ci'ENGINE=InnoDB;").executeUpdate();
+		
+		// FREUNDE
 		for (Person person : persons) {
 			
 			Query query = em.createNativeQuery("INSERT INTO persons "
@@ -97,10 +105,8 @@ public class DataReader {
 		// Ausnahmen
 		File ausnahmeFile = new File(ausnahmePath);
 		
-		for (String kackLine : H.getLines(ausnahmeFile)) {
+		for (String line : H.getLines(ausnahmeFile)) {
 
-			String line = H.cleanUp(kackLine);
-			System.out.println("Inserte " + line);
 			Query query3 = em.createNativeQuery("INSERT IGNORE INTO ausnahmen (title) values (?)");
 			query3.setParameter(1, line);
 			query3.executeUpdate();
@@ -108,8 +114,6 @@ public class DataReader {
 		
 		em.getTransaction().commit();
 		em.close();
-		
-//		car.persistAndCommit();
 		
 		System.out.println("Fertig.");
 	}
@@ -156,19 +160,14 @@ public class DataReader {
 				
 				persons.add(newPerson);
 				
-//				System.out.println(newPerson.getTitle() + " angelegt");
+//				if(newPerson.getTitle().startsWith("Andre R"))System.out.println(newPerson.getTitle() + " angelegt");
 			}
 		});
 	}
 
-	private static boolean isAusnahme(String name) {
+	private static boolean isAusnahme(String name2Check) {
 		
-		for (String kackLine : H.getLines(ausnahmePath)) {
-
-			String line = H.cleanUp(kackLine);
-			
-			if(line.equals(name)) return true;
-		}
+		if(ausnahmenList.contains(name2Check)) return true;
 		
 		return false;
 	}

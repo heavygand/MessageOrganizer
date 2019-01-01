@@ -298,14 +298,26 @@ public class H {
 
 	public static String cleanUp(String data) {
 		
+//		if(data.startsWith("Andre R"))System.out.println(data + " wird gecleaned");
+		
 		CharsetDetector detector = new CharsetDetector();
 		detector.setText(data.getBytes());
 		String charSetName = detector.detect().getName();
 		int confidence = detector.detect().getConfidence();
 		
-		if (charSetName.equals("ISO-8859-1")) {
+		if (charSetName.equals("ISO-8859-1") && !(
+				data.contains("Ã") ||
+				data.contains("±") || 
+				data.contains("¼") || 
+				data.contains("©") || 
+				data.contains("¿") || 
+				data.contains("¨") || 
+				data.contains("¸") || 
+				data.contains("¤") || 
+				data.contains("¡") || 
+				data.contains("¶")
+				)) {
 			
-//			System.out.println(" und muss nicht umgewandelt werden.");
 			return data;
 		}		
 		
@@ -317,27 +329,10 @@ public class H {
 		catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		
-		
-		if (!data.equals(result)) {
-			
-			String UTF8toISO885915 = null;
-			String ISO885915toUTF8 = null;
-			
-			try {
-				
-				UTF8toISO885915 = new String(data.getBytes("UTF-8"), "ISO-8859-15");
-				ISO885915toUTF8 = new String(data.getBytes("ISO-8859-15"), "UTF-8");
-			} catch (UnsupportedEncodingException e) {e.printStackTrace();}
-			
-			System.out.println(data + " => " + result + " | " + confidence + "% " + charSetName);
-			System.out.println("UTF8toISO885915: " + UTF8toISO885915);
-			System.out.println("ISO885915toUTF8: " + ISO885915toUTF8);
-			System.out.println("");
-		}
+
+//		if(data.startsWith("Andre R"))System.out.println(result + " kam dabei raus");
 		return result;
 	}
-	
 	/*
 	 * 
 	 * JSON/XML STUFF
