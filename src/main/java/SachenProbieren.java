@@ -1,62 +1,37 @@
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
-import de.ks.messageOrg.DataReader.DataReader;
+import de.ks.messageOrg.app.DBController;
+import de.ks.messageOrg.model.Message;
 import de.ks.messageOrg.model.Person;
-import helpers.H;
 
 public class SachenProbieren {
-	private static String				cyPath				= "./docs/CY.txt";
-
+	
 	public static void main(String[] args) {
 		
-		EntityManager em = Person.getEm();
+		List rawPerson = DBController.getPerson("Adam Kostorz");
+		Object[] objectArray = (Object[]) rawPerson.get(0);
 		
-		em.getTransaction().begin();
-		em.createNativeQuery("SET NAMES utf8mb4").executeUpdate();
-		
-		H.getLines(cyPath).forEach(line -> {
-			
-			handleThis(line, em);
-		});
+		Person person = new Person();
+		person.setTitle((String) objectArray[0]);
+		person.setThread_path((String) objectArray[1]);
+		person.setLastContact((long) objectArray[2]);
+		person.setFriendsSince((long) objectArray[3]);
+		person.setFirstContact((long) objectArray[4]);
 
-		em.getTransaction().commit();
-		em.close();
-	}
-
-	/**
-	 * @param line
-	 * @param em 
-	 */
-	private static void handleThis(String line, EntityManager em) {
+		List rawMessages = DBController.getMessages(person.getThread_path());
+		if(rawMessages == null) System.out.println(person.getTitle() + " hat keine Messages");
+		Object[] objectArray2 = (Object[]) rawMessages.get(0);
 		
-//		String line = H.cleanUp(dirtyLine);
-
-		// Wir checken ob das eine Ausnahme ist
-		if(DataReader.isAusnahme(line, em)) return;
-		
-		// Wir holen uns das FriendsSince
-		Query query = em.createNativeQuery("select friendsSince from persons where title = ?");
-		query.setParameter(1, line);
-		List resultList = query.getResultList();
-		long friendsSince = 0;
-		try {
+		ArrayList<Message> messages = new ArrayList<>();
+		for(int i = 0 ; i < objectArray2.length ; i++) {
 			
-			friendsSince = (long)resultList.get(0);
-		}
-		catch (ArrayIndexOutOfBoundsException e) {
-			
-			System.err.println(line + " wurde in der Liste der Personen nicht gefunden");
+			Message message = new Message();
+			message.setContent((String) objectArray2[1]);
+			message.setSender_name((String) objectArray2[2]);
+			message.setTimestamp_ms((long) objectArray2[3]);
 		}
 		
-		// Wir speichern das Ganze in die DB
-		Query query2 = em.createNativeQuery("INSERT IGNORE INTO cy "
-										+ "(title, friendsSince) "
-										+ "values (?, ?)");
-		query2.setParameter(1, line);			// title
-		query2.setParameter(2, friendsSince);	// friendsSince
-		query2.executeUpdate();
+		person.setMessages(messages);
 	}
 }

@@ -1,6 +1,8 @@
 package helpers;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.*;
 import java.sql.Timestamp;
 import java.time.*;
@@ -238,30 +240,74 @@ public class H {
 	 * CLASS STUFF
 	 * 
 	 */
-	public static Class getClass(String string) {
+	@SuppressWarnings("rawtypes")
+	public static Object newInstance(String string) {
+
+		Class cls = classForName(string);
+		
+		return newInstance(cls);
+	}
+	/**
+	 * @param string
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public static Class classForName(String string) {
 
 		Class cls = null;
 		try {
+			
 			cls = Class.forName(string);
-		} catch (ClassNotFoundException e) {
+		}
+		catch (ClassNotFoundException e) {
+			
+			System.err.println("Klasse " + string + " wurde nicht gefunden");
 			e.printStackTrace();
 		}
-		
 		return cls;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static Object newInstance(Class newClass) {
 
 		try {
+			
 			return newClass.newInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
 		}
+		catch (InstantiationException e) {e.printStackTrace();}
+		catch (IllegalAccessException e) {e.printStackTrace();}
 		return null;
 	}
 	
+	public static void callMethod(String className, String methodName) {
+
+		Method method = getMethod(classForName(className), methodName);
+		
+		try {
+			
+			method.invoke(null);
+		}
+		catch (IllegalAccessException e) {e.printStackTrace();}
+		catch (IllegalArgumentException e) {e.printStackTrace();}
+		catch (InvocationTargetException e) {e.printStackTrace();}
+	}
+
+	public static Method getMethod(Class clazz, String methodName) {
+
+		Method method = null;
+		try {
+			
+			method = clazz.getClass().getMethod(methodName);
+		}
+		catch (NoSuchMethodException e) {
+
+			System.err.println("Methode " + methodName + " wurde nicht gefunden in " + clazz.getName());
+			e.printStackTrace();
+		}
+		catch (SecurityException e) {e.printStackTrace();}
+		
+		return method;
+	}
 	
 	/*
 	 * 

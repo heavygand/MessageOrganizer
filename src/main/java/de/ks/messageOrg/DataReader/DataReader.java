@@ -24,8 +24,8 @@ public class DataReader {
 	private static String				createMessagesFile	= "./docs/createMessages.txt";
 	private static String				createPropertiesFile= "./docs/createProperties.txt";
 	private static ArrayList<Person>	persons				= new ArrayList<Person>();
-	private static Person currentPerson;
-	private static List<String> ausnahmenList;
+	private static Person				currentPerson;
+	private static List<String>			ausnahmenList;
 
 	public static void main(String[] args) {
 		

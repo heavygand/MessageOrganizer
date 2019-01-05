@@ -44,22 +44,22 @@
                   </Tab>
                 <Tab id="UnangeschriebeneTab" text="Unangeschriebene">
                      <content>
-                        <VBox id="Unangeschriebene" prefHeight="200.0" prefWidth="100.0" />
+                        <VBox id="Unwritten" prefHeight="200.0" prefWidth="100.0" />
                      </content>
                   </Tab>
                   <Tab id="AngeschriebeneTab" text="Angeschriebene">
                      <content>
-                        <VBox id="Angeschriebene" prefHeight="200.0" prefWidth="100.0" />
+                        <VBox id="Written" prefHeight="200.0" prefWidth="100.0" />
                      </content>
                   </Tab>
                   <Tab id="Gruppe_verschicktTab" text="Gruppe verschickt">
                      <content>
-                        <VBox id="Gruppe_verschickt" prefHeight="200.0" prefWidth="100.0" />
+                        <VBox id="GroupSend" prefHeight="200.0" prefWidth="100.0" />
                      </content>
                   </Tab>
                   <Tab id="In_GruppeTab" text="In der Gruppe">
                      <content>
-                        <VBox id="In_Gruppe" prefHeight="200.0" prefWidth="100.0" />
+                        <VBox id="InGroup" prefHeight="200.0" prefWidth="100.0" />
                      </content>
                   </Tab>
                   <Tab id="VideoTab" text="Video">
@@ -69,12 +69,12 @@
                   </Tab>
                   <Tab id="NachfassenTab" text="Nachfassen">
                      <content>
-                        <VBox id="Nachfassen" prefHeight="200.0" prefWidth="100.0" />
+                        <VBox id="Nachzufassen" prefHeight="200.0" prefWidth="100.0" />
                      </content>
                   </Tab>
                   <Tab id="KundenTab" text="Kunden">
                      <content>
-                        <VBox id="Kunden" prefHeight="200.0" prefWidth="100.0" />
+                        <VBox id="Customers" prefHeight="200.0" prefWidth="100.0" />
                      </content>
                   </Tab>
                   <Tab id="keineReaktionTab" text="Keine Reaktion">

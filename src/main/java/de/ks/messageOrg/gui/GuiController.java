@@ -2,69 +2,91 @@ package de.ks.messageOrg.gui;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
-import de.ks.messageOrg.app.MainApp;
+import de.ks.messageOrg.app.App;
 import de.ks.messageOrg.model.Message;
 import de.ks.messageOrg.model.Person;
 import helpers.H;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.scene.Scene;
+import javafx.collections.ObservableList;
+import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 @SuppressWarnings("restriction")
 public class GuiController {
 	
-	private static VBox vBoxGruppe_verschickt;
-	private static VBox vBoxIn_Gruppe;
 	private static Scene mainScene;
-	private static VBox vBoxKunden;
-	private static VBox vBoxKeineReaktion;
-	private static VBox vBoxAlt;
+	private static GUIList vBoxGruppe_verschickt;
+	private static GUIList vBoxIn_Gruppe;
+	private static GUIList vBoxKunden;
+	private static GUIList vBoxKeineReaktion;
+	private static GUIList vBoxAlt;
+	private static GUIList vBoxAlle;
+	private static GUIList currentVBox = (GUIList) vBoxAlle;
+
+	class GUIList extends VBox{
+		
+		public String name;
+		public boolean loaded;
+		
+		void loadData() {
+			
+			H.callMethod("App", "get"+name);
+		}
+	}
 
 	public static void initMainWindow(Scene scene) {
 		
 		mainScene = scene;
 		if (!scene.getUserData().equals("gui.fxml")) return;
-
+		
+		// Anzahl Anzeige
 		ToolBar toolbar = (ToolBar) scene.lookup("#toolbar");
-		Label anzeige = (Label)toolbar.getItems().get(0);
-		MainApp.setPersonenAnzahlAnzeige(anzeige);
+		Label anzahlAnzeige = (Label)toolbar.getItems().get(0);
 
+		// Listener für das Wechseln eines Tabs
 		TabPane tabPane = (TabPane) scene.lookup("#tabPane");
 		tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
 
 			@Override
 			public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
 				
-				VBox newVBox = (VBox) newValue.getContent();
-				
-				MainApp.setCurrentVBox(newVBox);
-				MainApp.refreshAnzeige(newVBox);
+				currentVBox = (GUIList) newValue.getContent();
+				currentVBox.loadData();
 			}
 		});
 		
-		VBox vBoxUnangeschriebene = (VBox) scene.lookup("#Unangeschriebene");
-		MainApp.showUnwritten(vBoxUnangeschriebene);
+		/*
+		 * 
+		 * DIE VERSCHIEDENEN TABS
+		 * 
+		 */
+		String name;
+		
+		name = "Unwritten";
+		GUIList vBoxUnangeschriebene = (GUIList) scene.lookup("#" + name);
+		vBoxUnangeschriebene.name = name;
 
-		VBox vBoxAngeschriebene = (VBox) scene.lookup("#Angeschriebene");
-		MainApp.showWritten(vBoxAngeschriebene);
+		GUIList vBoxAngeschriebene = (GUIList) scene.lookup("#Written");
+		vBoxAngeschriebene.name = "Written";
 		
-		vBoxGruppe_verschickt = (VBox) scene.lookup("#Gruppe_verschickt");
-		MainApp.showGroup(vBoxGruppe_verschickt);
+		vBoxGruppe_verschickt = (GUIList) scene.lookup("#GroupSend");
+		vBoxGruppe_verschickt.name = "GroupSend";
 		
-		vBoxIn_Gruppe = (VBox) scene.lookup("#In_Gruppe");
-		MainApp.showInGroup(vBoxIn_Gruppe);
+		vBoxIn_Gruppe = (GUIList) scene.lookup("#In_Gruppe");
+		vBoxIn_Gruppe.name = "InGroup";
 		
-		VBox vBoxNachfassen = (VBox) scene.lookup("#Nachfassen");
-		MainApp.showNachzufassen(vBoxNachfassen);
+		GUIList vBoxNachfassen = (GUIList) scene.lookup("#Nachfassen");
+		vBoxNachfassen.name = "Nachzufassen";
 
-		VBox vBoxVideo = (VBox) scene.lookup("#Video");
-		MainApp.showVideo(vBoxVideo);
+		GUIList vBoxVideo = (GUIList) scene.lookup("#Video");
+		vBoxVideo.name = "Video";
 		
-		vBoxKunden = (VBox) scene.lookup("#Kunden");
-		MainApp.showCustomers(vBoxKunden);
+		vBoxKunden = (GUIList) scene.lookup("#Kunden");
+		vBoxKunden.name = "Customers";
 		
 //		vBoxKeineReaktion = (VBox) scene.lookup("#keineReaktion");
 //		MainApp.showNoReaction(vBoxKeineReaktion);
@@ -72,18 +94,33 @@ public class GuiController {
 //		vBoxAlt = (VBox) scene.lookup("#alt");
 //		MainApp.showOld(vBoxAlt);
 		
-		VBox vBoxAlle = (VBox) scene.lookup("#Alle");
-		MainApp.showAll(vBoxAlle);
+		vBoxAlle = (GUIList) scene.lookup("#Alle");
+		vBoxAlle.name = "Customers";
 		
+		/*
+		 * 
+		 * WERKZEUGLEISTE
+		 * 
+		 */
 		TextField searchField = (TextField) toolbar.getItems().get(2);
 		
 		Button search = (Button) toolbar.getItems().get(3);
-		search.setOnAction(e -> MainApp.search(searchField.getText()));
+		String name1 = searchField.getText();
+		search.setOnAction(e -> {
+			
+			if(!App.search(name1)) {
+				
+				Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+				errorAlert.setHeaderText("Fehler");
+				errorAlert.setContentText(name1 + " konnte nicht gefunden werden");
+				errorAlert.showAndWait();
+			}
+		});
 		
 		TextField generateAmount = (TextField) toolbar.getItems().get(5);
 		
 		Button generateButton = (Button) toolbar.getItems().get(6);
-		generateButton.setOnAction(e -> MainApp.generatePersonList(generateAmount.getText()));
+		generateButton.setOnAction(e -> App.generatePersonList(generateAmount.getText()));
 		
 //		c = new Counter();
 //		c.getPropertyChangeSupport().addPropertyChangeListener(c.PROPERTY_NUMBER, (a) -> {
@@ -139,26 +176,25 @@ public class GuiController {
 		
 		Label currentStatus = (Label) scene.lookup("#currentStatus");
 		currentStatus.setText(person.getState());
-		person.setStatusLabel(currentStatus);
 		
 		TextArea notesArea = (TextArea) scene.lookup("#notesArea");
 		notesArea.setText(person.getNotes());
 		
 		Button saveButton = (Button) scene.lookup("#saveButton");
 		saveButton.setUserData(person);
-		saveButton.setOnAction(e -> MainApp.savePersonNotes((Person)saveButton.getUserData(), notesArea, nachfassenAm));
+		saveButton.setOnAction(e -> App.savePersonNotes((Person)saveButton.getUserData(), notesArea, nachfassenAm));
 		notesArea.setText(person.getNotes());
 		
 		Button istInGruppeButton = (Button) scene.lookup("#istInGruppeButton");
 		istInGruppeButton.setUserData(person);
-		istInGruppeButton.setOnAction(e -> MainApp.makeGroupMember((Person)istInGruppeButton.getUserData(), vBoxGruppe_verschickt, vBoxIn_Gruppe ) );
+		istInGruppeButton.setOnAction(e -> App.makeGroupMember((Person)istInGruppeButton.getUserData(), vBoxGruppe_verschickt, vBoxIn_Gruppe ) );
 		
 		Button istKundeButton = (Button) scene.lookup("#istKundeButton");
 		istKundeButton.setUserData(person);
-		istKundeButton.setOnAction(e -> MainApp.makeCustomer((Person)istKundeButton.getUserData(), vBoxKunden));
+		istKundeButton.setOnAction(e -> App.makeCustomer((Person)istKundeButton.getUserData(), vBoxKunden));
 	}
 
-	public static VBox getVBox(String state) {
+	private static VBox getVBox(String state) {
 
 		VBox vBox = null;
 		try {
@@ -171,5 +207,147 @@ public class GuiController {
 		}
 		
 		return vBox;
+	}
+
+	private static void addToCurrentGUIList(String status, Person person) {
+
+		addToGUIList(currentUserList, person, status);
+	}
+
+	private static void addToGUIList(VBox vBox, Person person) {
+
+		ObservableList<Node> children = vBox.getChildren();
+		addToGUIList(children, person, vBox.getId());
+	}
+
+	private static void addToGUIList(ObservableList<Node> currentUserList, Person person, String status) {
+
+		HBox personBox = new HBox();
+		personBox.setPrefHeight(32);
+		personBox.setPrefWidth(600);
+		currentUserList.add(personBox);
+		String name = person.getTitle();
+		Label label = new Label(name);
+		label.setPrefWidth(200);
+		personBox.getChildren().add(label);
+		long timeStampLongFirst = person.getMessages().isEmpty() ? 0 : getFirstMessage(person).getTimestamp_ms();
+		person.setFirstContact(timeStampLongFirst);
+		long timeStampLongLast = getLastMessageFromPerson(person) == null ? 0
+				: getLastMessageFromPerson(person).getTimestamp_ms();
+		person.setLastContact(timeStampLongLast);
+		String formattedDate = H.getGermanDateTimeString(timeStampLongFirst);
+		if (timeStampLongFirst == 0)
+			formattedDate = "";
+		Label dateLabel = new Label(formattedDate);
+		dateLabel.setPrefWidth(300);
+		personBox.getChildren().add(dateLabel);
+		if (status != null)
+			person.setState(status);
+		label.setOnMouseClicked(e -> {
+			appInstance.showPerson(person);
+		});
+	}
+
+	private static void removeFromGUIList(ArrayList<Person> personList) {
+
+		personList.forEach(person -> removeFromGUIList(person));
+	}
+
+	private static void removeFromGUIList(Person person) {
+
+		ArrayList<Object> toRemove = new ArrayList<>();
+		VBox vBox = getCurrentVBox4Person(person);
+		if (vBox == null)
+			return;
+		ObservableList<Node> children = vBox.getChildren();
+		for (Object personBoxObj : children) {
+			HBox personBox = (HBox) personBoxObj;
+			for (Object obj : personBox.getChildren()) {
+				if (obj instanceof Label && ((Label) obj).getText().equals(person.getTitle())) {
+					toRemove.add(personBoxObj);
+				}
+			}
+		}
+		for (Object obj : toRemove) {
+			children.remove(obj);
+		}
+	}
+
+	private static void addPeopleWithRightMessagesToCurrentGUIList(String status, ArrayList<String> okList,
+			ArrayList<String> notOkList) {
+
+		currentUserList.removeAll(currentUserList);
+		persons.forEach(person -> {
+			if (checkContain(okList, person) && !checkContain(notOkList, person)) {
+				addToCurrentGUIList(status, person);
+			}
+		});
+	}
+
+	private static void moveToVBox(Person person, VBox vBoxTo) {
+
+		removeFromGUIList(person);
+		addToGUIList(vBoxTo, person);
+		person.setState(vBoxTo.getId());
+		if (person.getStatusLabel() != null) {
+			person.getStatusLabel().setText(vBoxTo.getId());
+		}
+		refreshAnzeige();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void moveToVBox(ArrayList<String> persons, String vBoxToName) {
+
+		VBox vBoxTo = getVBox(vBoxToName);
+		// Collections.sort(persons);
+		vBoxTo.getChildren().clear();
+		persons.forEach(person -> moveToVBox(person, vBoxTo));
+	}
+
+	private static VBox getCurrentVBox4Person(Person person) {
+
+		String state = person.getState();
+		VBox vBoxOld = GuiController.getVBox(state);
+		return vBoxOld;
+	}
+
+	public static void refreshAnzeige(VBox vBox) {
+
+		currentUserList = vBox.getChildren();
+		anzahlPersonenAnzeige.setText(currentUserList.size() + " Personen");
+	}
+
+	public static ArrayList<String> getCurrentPersonListFromGUI() {
+
+		ArrayList<String> localPersons = new ArrayList<>();
+		for (Node userNode : currentVBox.getChildren()) {
+			
+			HBox userHBox = (HBox) userNode;
+			Label nameLabel = (Label) userHBox.getChildren().get(0);
+			String name = nameLabel.getText();
+			localPersons.add(name);
+		}
+		return localPersons;
+	}
+
+	public static String getCurrentTab() {
+
+		return currentVBox.name;
+	}
+
+	public static void makeGroupMember(Person person, VBox vBoxGruppe_verschickt, VBox vBoxIn_Gruppe) {
+
+		personListInGroup.add(person);
+		moveToVBox(personListInGroup, vBoxIn_Gruppe);
+		refreshAnzeige();
+		person.setState(vBoxIn_Gruppe.getId());
+		person.getStatusLabel().setText(vBoxIn_Gruppe.getId());
+		H.appendToFile(person.getTitle(), cyPath);
+	}
+
+	public static void makeCustomer(Person person, VBox vBoxKunden) {
+
+		moveToVBox(person, vBoxKunden);
+		H.appendToFile(person.getTitle(), customersPath);
 	}
 }
