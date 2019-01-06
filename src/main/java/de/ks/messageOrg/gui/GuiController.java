@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import de.ks.messageOrg.app.App;
+import de.ks.messageOrg.app.StartApp;
 import de.ks.messageOrg.model.Message;
 import de.ks.messageOrg.model.Person;
 import helpers.H;
@@ -22,16 +23,22 @@ public class GuiController {
 	private static GUIList vBoxGruppe_verschickt;
 	private static GUIList vBoxIn_Gruppe;
 	private static GUIList vBoxKunden;
-	private static GUIList vBoxKeineReaktion;
-	private static GUIList vBoxAlt;
 	private static GUIList vBoxAlle;
 	private static GUIList currentVBox = (GUIList) vBoxAlle;
+	private static ObservableList<Node> currentUserList;
+	private static Label anzahlPersonenAnzeige;
 
 	class GUIList extends VBox{
 		
 		public String name;
 		public boolean loaded;
 		
+		public GUIList(Node lookup) {
+
+			setAccessibleHelp(lookup.getAccessibleHelp());
+			setAccessibleHelp(lookup.get);
+		}
+
 		void loadData() {
 			
 			H.callMethod("App", "get"+name);
@@ -45,7 +52,7 @@ public class GuiController {
 		
 		// Anzahl Anzeige
 		ToolBar toolbar = (ToolBar) scene.lookup("#toolbar");
-		Label anzahlAnzeige = (Label)toolbar.getItems().get(0);
+		anzahlPersonenAnzeige = (Label)toolbar.getItems().get(0);
 
 		// Listener für das Wechseln eines Tabs
 		TabPane tabPane = (TabPane) scene.lookup("#tabPane");
@@ -67,7 +74,7 @@ public class GuiController {
 		String name;
 		
 		name = "Unwritten";
-		GUIList vBoxUnangeschriebene = (GUIList) scene.lookup("#" + name);
+		GUIList vBoxUnangeschriebene = new GUIList(scene.lookup("#" + name));
 		vBoxUnangeschriebene.name = name;
 
 		GUIList vBoxAngeschriebene = (GUIList) scene.lookup("#Written");
@@ -96,6 +103,7 @@ public class GuiController {
 		
 		vBoxAlle = (GUIList) scene.lookup("#Alle");
 		vBoxAlle.name = "Customers";
+		currentUserList = currentVBox.getChildren();
 		
 		/*
 		 * 
@@ -120,7 +128,7 @@ public class GuiController {
 		TextField generateAmount = (TextField) toolbar.getItems().get(5);
 		
 		Button generateButton = (Button) toolbar.getItems().get(6);
-		generateButton.setOnAction(e -> App.generatePersonList(generateAmount.getText()));
+		generateButton.setOnAction(e -> App.generatePersonList(generateAmount.getText(), currentVBox.getId()));
 		
 //		c = new Counter();
 //		c.getPropertyChangeSupport().addPropertyChangeListener(c.PROPERTY_NUMBER, (a) -> {
@@ -182,16 +190,24 @@ public class GuiController {
 		
 		Button saveButton = (Button) scene.lookup("#saveButton");
 		saveButton.setUserData(person);
-		saveButton.setOnAction(e -> App.savePersonNotes((Person)saveButton.getUserData(), notesArea, nachfassenAm));
+		saveButton.setOnAction(e -> App.savePersonNotes((Person)saveButton.getUserData(), notesArea.getText(), nachfassenAm.getValue()));
 		notesArea.setText(person.getNotes());
 		
-		Button istInGruppeButton = (Button) scene.lookup("#istInGruppeButton");
-		istInGruppeButton.setUserData(person);
-		istInGruppeButton.setOnAction(e -> App.makeGroupMember((Person)istInGruppeButton.getUserData(), vBoxGruppe_verschickt, vBoxIn_Gruppe ) );
+//		Button istInGruppeButton = (Button) scene.lookup("#istInGruppeButton");
+//		istInGruppeButton.setUserData(person);
+//		istInGruppeButton.setOnAction(e -> {
+//			
+//			currentStatus.setText(vBoxIn_Gruppe.getId());
+//			makeGroupMember((Person)istInGruppeButton.getUserData(), vBoxGruppe_verschickt, vBoxIn_Gruppe );
+//		});
 		
 		Button istKundeButton = (Button) scene.lookup("#istKundeButton");
 		istKundeButton.setUserData(person);
-		istKundeButton.setOnAction(e -> App.makeCustomer((Person)istKundeButton.getUserData(), vBoxKunden));
+		istKundeButton.setOnAction(e -> {
+			
+			currentStatus.setText(vBoxKunden.getId());
+			makeCustomer((Person)istKundeButton.getUserData(), vBoxKunden);
+		});
 	}
 
 	private static VBox getVBox(String state) {
@@ -209,10 +225,10 @@ public class GuiController {
 		return vBox;
 	}
 
-	private static void addToCurrentGUIList(String status, Person person) {
-
-		addToGUIList(currentUserList, person, status);
-	}
+//	private static void addToCurrentGUIList(String status, Person person) {
+//
+//		addToGUIList(currentUserList, person, status);
+//	}
 
 	private static void addToGUIList(VBox vBox, Person person) {
 
@@ -230,28 +246,28 @@ public class GuiController {
 		Label label = new Label(name);
 		label.setPrefWidth(200);
 		personBox.getChildren().add(label);
-		long timeStampLongFirst = person.getMessages().isEmpty() ? 0 : getFirstMessage(person).getTimestamp_ms();
+		long timeStampLongFirst = person.getMessages().isEmpty() ? 0 : App.getFirstMessage(person).getTimestamp_ms();
 		person.setFirstContact(timeStampLongFirst);
-		long timeStampLongLast = getLastMessageFromPerson(person) == null ? 0
-				: getLastMessageFromPerson(person).getTimestamp_ms();
+		long timeStampLongLast = App.getLastMessageFromPerson(person) == null ? 0 : App.getLastMessageFromPerson(person).getTimestamp_ms();
 		person.setLastContact(timeStampLongLast);
 		String formattedDate = H.getGermanDateTimeString(timeStampLongFirst);
-		if (timeStampLongFirst == 0)
-			formattedDate = "";
+		if (timeStampLongFirst == 0) formattedDate = "";
 		Label dateLabel = new Label(formattedDate);
 		dateLabel.setPrefWidth(300);
 		personBox.getChildren().add(dateLabel);
-		if (status != null)
-			person.setState(status);
+		
+		if (status != null) person.setState(status);
+		
 		label.setOnMouseClicked(e -> {
-			appInstance.showPerson(person);
+			
+			StartApp.showPerson(person);
 		});
 	}
 
-	private static void removeFromGUIList(ArrayList<Person> personList) {
-
-		personList.forEach(person -> removeFromGUIList(person));
-	}
+//	private static void removeFromGUIList(ArrayList<Person> personList) {
+//
+//		personList.forEach(person -> removeFromGUIList(person));
+//	}
 
 	private static void removeFromGUIList(Person person) {
 
@@ -273,30 +289,15 @@ public class GuiController {
 		}
 	}
 
-	private static void addPeopleWithRightMessagesToCurrentGUIList(String status, ArrayList<String> okList,
-			ArrayList<String> notOkList) {
-
-		currentUserList.removeAll(currentUserList);
-		persons.forEach(person -> {
-			if (checkContain(okList, person) && !checkContain(notOkList, person)) {
-				addToCurrentGUIList(status, person);
-			}
-		});
-	}
-
 	private static void moveToVBox(Person person, VBox vBoxTo) {
 
 		removeFromGUIList(person);
 		addToGUIList(vBoxTo, person);
-		person.setState(vBoxTo.getId());
-		if (person.getStatusLabel() != null) {
-			person.getStatusLabel().setText(vBoxTo.getId());
-		}
+
 		refreshAnzeige();
 	}
 
-	@SuppressWarnings("unchecked")
-	public static void moveToVBox(ArrayList<String> persons, String vBoxToName) {
+	public static void moveToVBox(ArrayList<Person> persons, String vBoxToName) {
 
 		VBox vBoxTo = getVBox(vBoxToName);
 		// Collections.sort(persons);
@@ -314,6 +315,11 @@ public class GuiController {
 	public static void refreshAnzeige(VBox vBox) {
 
 		currentUserList = vBox.getChildren();
+		anzahlPersonenAnzeige.setText(currentUserList.size() + " Personen");
+	}
+
+	public static void refreshAnzeige() {
+
 		anzahlPersonenAnzeige.setText(currentUserList.size() + " Personen");
 	}
 
@@ -335,19 +341,18 @@ public class GuiController {
 		return currentVBox.name;
 	}
 
-	public static void makeGroupMember(Person person, VBox vBoxGruppe_verschickt, VBox vBoxIn_Gruppe) {
-
-		personListInGroup.add(person);
-		moveToVBox(personListInGroup, vBoxIn_Gruppe);
-		refreshAnzeige();
-		person.setState(vBoxIn_Gruppe.getId());
-		person.getStatusLabel().setText(vBoxIn_Gruppe.getId());
-		H.appendToFile(person.getTitle(), cyPath);
-	}
+//	public static void makeGroupMember(Person person, VBox vBoxGruppe_verschickt, VBox vBoxIn_Gruppe) {
+//
+////		personListInGroup.add(person);
+//		moveToVBox(person, vBoxIn_Gruppe);
+////		refreshAnzeige();
+//		
+//		App.savePersonState(person, vBoxIn_Gruppe.getId());
+//	}
 
 	public static void makeCustomer(Person person, VBox vBoxKunden) {
 
 		moveToVBox(person, vBoxKunden);
-		H.appendToFile(person.getTitle(), customersPath);
+		App.savePersonState(person, vBoxKunden.getId());
 	}
 }

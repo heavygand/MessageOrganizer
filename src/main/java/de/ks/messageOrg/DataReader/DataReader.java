@@ -8,6 +8,7 @@ import javax.persistence.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import de.ks.messageOrg.app.App;
 import de.ks.messageOrg.model.Message;
 import de.ks.messageOrg.model.Person;
 import de.ks.messageOrg.model.util.MessageCreator;
@@ -18,11 +19,10 @@ public class DataReader {
 	
 	private static String				inboxPath			= "C:\\Users\\erikd\\Downloads\\messages\\inbox";
 	private static String				friendsPath			= "C:\\Users\\erikd\\Downloads\\friends\\friends.json";
-	private static String				generatedPathDB		= "C:\\Users\\erikd\\Dropbox\\Apps\\MessageOrganizer\\writeToList.txt";
-	private static String				blackListPath		= "./docs/blacklist";
+//	private static String				blackListPath		= "./docs/blacklist";
 	private static String				createPersonsFile	= "./docs/createPersons.txt";
 	private static String				createMessagesFile	= "./docs/createMessages.txt";
-	private static String				createPropertiesFile= "./docs/createProperties.txt";
+//	private static String				createPropertiesFile= "./docs/createProperties.txt";
 	private static ArrayList<Person>	persons				= new ArrayList<Person>();
 	private static Person				currentPerson;
 	private static List<String>			ausnahmenList;
@@ -96,6 +96,7 @@ public class DataReader {
 	/**
 	 * @param em
 	 */
+	@SuppressWarnings("unchecked")
 	private static void readAusnahmen(EntityManager em) {
 
 		ausnahmenList = em.createNativeQuery("select * from ausnahmen").getResultList();
@@ -137,32 +138,6 @@ public class DataReader {
 //				if(newPerson.getTitle().startsWith("Andre R"))System.out.println(newPerson.getTitle() + " angelegt");
 			}
 		});
-	}
-
-	private static Message getLastMessageFromPerson(Person person) {
-
-		ArrayList<Message> messages = person.getMessages();
-		
-		for(Message message : messages) {
-			
-			if(message.getSender_name().equals(person.getTitle())) {
-				
-				return message;
-			}
-		}
-		
-		return null;
-	}
-
-	private static Message getLastMessage(Person person) {
-		
-		return person.getMessages().get(0);
-	}
-
-	private static Message getFirstMessage(Person person) {
-
-		ArrayList<Message> messages = person.getMessages();
-		return messages.get(messages.size()-1);
 	}
 
 	public static boolean isAusnahme(String name2Check, EntityManager em) {
@@ -209,10 +184,10 @@ public class DataReader {
 			currentPerson = thisPerson;
 			readMessageFileAttributes(jsonObj);
 			
-			long timeStampLongFirst = thisPerson.getMessages().isEmpty() ? 0 : getFirstMessage(thisPerson).getTimestamp_ms();        
+			long timeStampLongFirst = thisPerson.getMessages().isEmpty() ? 0 : App.getFirstMessage(thisPerson).getTimestamp_ms();        
 			thisPerson.setFirstContact(timeStampLongFirst);
 
-			long timeStampLongLast = getLastMessageFromPerson(thisPerson)==null ? 0 : getLastMessageFromPerson(thisPerson).getTimestamp_ms();        
+			long timeStampLongLast = App.getLastMessageFromPerson(thisPerson)==null ? 0 : App.getLastMessageFromPerson(thisPerson).getTimestamp_ms();        
 			thisPerson.setLastContact(timeStampLongLast);
 		}
 	}

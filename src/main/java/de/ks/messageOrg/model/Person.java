@@ -292,12 +292,4 @@ public class Person{
     	
        return listeners;
     }
-
-	public void persistAndCommit() {
-
-		em.getTransaction().begin();
-		em.persist(this);
-		em.getTransaction().commit();
-		em.close();
-	}
 }

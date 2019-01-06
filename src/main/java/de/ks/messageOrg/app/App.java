@@ -1,18 +1,12 @@
 package de.ks.messageOrg.app;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import de.ks.messageOrg.gui.GuiController;
 import de.ks.messageOrg.model.Message;
 import de.ks.messageOrg.model.Person;
-import de.uniks.networkparser.converter.GUIConverter;
 import helpers.H;
 
 public class App {
@@ -117,18 +111,93 @@ public class App {
 		return person;
 	}
 
-	public static void generatePersonList(String text) {
+	public static void generatePersonList(String amountString, String tabId) {
 
-		int amount = Integer.parseInt(text);
+		int amount = Integer.parseInt(amountString);
 		List<String> subList = GuiController.getCurrentPersonListFromGUI().subList(0, amount);
-		ArrayList<String> localPersons = new ArrayList<String>(subList);
+		ArrayList<String> localNames = new ArrayList<String>(subList);
 		
-		if (GuiController.getCurrentTab().equals("Unwritten")) {
+		ArrayList<Person> localPersons = getPersons(localNames);
+		
+		if (tabId.equals("Unwritten")) {
 			
 			GuiController.moveToVBox(localPersons, "Angeschriebene");
 		}
 		
-		H.appendToFile(localPersons, generatedPathDB);
+		H.appendToFile(localNames, generatedPathDB);
+	}
+
+	private static ArrayList<Person> getPersons(ArrayList<String> localNames) {
+		
+		ArrayList<Person> persons = new ArrayList<>();
+
+		for (String name : localNames) {
+			
+			Person person = getPerson(name);
+			persons.add(person);
+		}
+		
+		return persons;
+	}
+
+	public static void savePersonNotes(Person person, String notes, LocalDate nachfassen) {
+
+		long timeStampAsLong = person.getNachfassen();
+		if (notes != null) {
+			
+			person.setNotes(notes);
+		}
+		if (nachfassen != null) {
+			
+			timeStampAsLong = H.getTimeStampAsLong(nachfassen);
+			person.setNachfassen(timeStampAsLong);
+		}
+		
+		DBController.savePersonNotes(person.getTitle(), person.getState(), notes, timeStampAsLong, person.getFriendsSince());
+	}
+
+	public static void savePersonState(Person person, String state) {
+
+		// Set person state
+		person.setState(state);
+		
+		// Set database person state
+		switch (state) {
+			case "Customers":
+				DBController.savePersonNotes(person.getTitle(), "Kunde", person.getNotes(), person.getNachfassen(), person.getFriendsSince());
+				break;
+			case "InGroup":
+				
+				break;
+			default:
+				break;
+		}
+	}
+
+	public static Message getLastMessageFromPerson(Person person) {
+
+		ArrayList<Message> messages = person.getMessages();
+		
+		for(Message message : messages) {
+			
+			if(message.getSender_name().equals(person.getTitle())) {
+				
+				return message;
+			}
+		}
+		
+		return null;
+	}
+
+	public static Message getLastMessage(Person person) {
+		
+		return person.getMessages().get(0);
+	}
+
+	public static Message getFirstMessage(Person person) {
+
+		ArrayList<Message> messages = person.getMessages();
+		return messages.get(messages.size()-1);
 	}
 
 	/*

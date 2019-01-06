@@ -1,5 +1,6 @@
 package de.ks.messageOrg.app;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -47,6 +48,11 @@ public class DBController {
 		return select("title", "customers");
 	}
 
+	public static List<String> getNachzufassen() {
+
+		return select("title", "nachfassen");
+	}
+
 	public static List getPerson(String name) {
 
 		Query query = em.createNativeQuery("SELECT * FROM persons where title = ?");
@@ -72,6 +78,24 @@ public class DBController {
 		List<String> select = select(query);
 		
 		return select;
+	}
+
+	public static void savePersonNotes(String title, String state, String notes, long nachfassen, long friendsSince) {
+
+		em.getTransaction().begin();
+		em.createNativeQuery("SET NAMES utf8mb4").executeUpdate();
+			
+		Query query = em.createNativeQuery( "UPDATE properties " +
+											"SET state = ?, notes = ?, nachfassen = ?" +
+											"WHERE title = ? and friendsSince = ?"
+											);
+		query.setParameter(1, state);
+		query.setParameter(2, notes);
+		query.setParameter(3, nachfassen);
+		query.setParameter(4, title);
+		query.setParameter(5, friendsSince);
+		
+		em.getTransaction().commit();
 	}
 	
 	/*
@@ -113,7 +137,6 @@ public class DBController {
 		List<String> resultList = query.getResultList();
 		
 		em.getTransaction().commit();
-		em.close();
 		return resultList;
 	}
 }

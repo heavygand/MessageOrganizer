@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 public class StartApp extends Application {
 	
 	private Stage stage;
+	private static StartApp appInstance;
 	
 	/*
 	 * 
@@ -30,7 +31,7 @@ public class StartApp extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		DataReader.readJsonData();
+//		DataReader.readJsonData();
 
 		System.out.println("Baue GUI auf...");
 		
@@ -41,7 +42,7 @@ public class StartApp extends Application {
 
 	private void startWindow(String fxmlName) {
 		
-//		App.setAppInstance(this);
+		appInstance = this;
 
 		Pane pane = null;
 		try {
@@ -56,8 +57,13 @@ public class StartApp extends Application {
 		stage.setScene(scene);
 		stage.show();
 	}
+	
+	public static void showPerson(Person person) {
+		
+		appInstance.showPersonOnThis(person);
+	}
 
-	public void showPerson(Person person) {
+	private void showPersonOnThis(Person person) {
 
 		String name = person.getTitle();
 		Pane pane = null;
