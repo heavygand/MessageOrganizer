@@ -53,6 +53,11 @@ public class DBController {
 		return select("title", "nachfassen");
 	}
 
+	public static List<String> getTable(String id) {
+
+		return select("title", id);
+	}
+
 	public static List getPerson(String name) {
 
 		Query query = em.createNativeQuery("SELECT * FROM persons where title = ?");

@@ -59,6 +59,11 @@ public class App {
 		return DBController.getCustomers();
 	}
 
+	public static ArrayList<Person> getPersons4Tab(String id) {
+		
+		return getPersons(DBController.getTable(id));
+	}
+
 	public static boolean search(String name) {
 
 		Person person = getPerson(name);
@@ -127,7 +132,7 @@ public class App {
 		H.appendToFile(localNames, generatedPathDB);
 	}
 
-	private static ArrayList<Person> getPersons(ArrayList<String> localNames) {
+	private static ArrayList<Person> getPersons(List<String> localNames) {
 		
 		ArrayList<Person> persons = new ArrayList<>();
 
