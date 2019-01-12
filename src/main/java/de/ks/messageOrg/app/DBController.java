@@ -137,8 +137,12 @@ public class DBController {
 		em.getTransaction().begin();
 		em.createNativeQuery("SET NAMES utf8mb4").executeUpdate();
 			
-		String wherestatement = " WHERE " + where;
-		Query query = em.createNativeQuery("SELECT " + select + " FROM " + from + wherestatement);
+		if (!where.equals("")) {
+			
+			where = " WHERE " + where;
+		}
+		
+		Query query = em.createNativeQuery("SELECT " + select + " FROM " + from + where);
 		List<String> resultList = query.getResultList();
 		
 		em.getTransaction().commit();

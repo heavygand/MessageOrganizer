@@ -19,45 +19,45 @@ public class App {
 	 * LADEN DER LISTEN
 	 * 
 	 */
-	public static List<String> getAll() {
-
-		return DBController.getAll();
-	}
-
-	public static List<String> getUnwritten() {
-
-		return DBController.getUnwritten();
-	}
-
-	public static List<String> getWritten() {
-
-		return DBController.getWritten();
-	}
-
-	public static List<String> getInGroup() {
-
-		return DBController.getInGroup();
-	}
-
-	public static List<String> getNachzufassen() {
-
-		return DBController.getNachzufassen();
-	}
-
-	public static List<String> getGroupSend() {
-
-		return DBController.getGroupSend();
-	}
-
-	public static List<String> getVideo() {
-
-		return DBController.getVideo();
-	}
-
-	public static List<String> getCustomers() {
-
-		return DBController.getCustomers();
-	}
+//	public static List<String> getAll() {
+//
+//		return DBController.getAll();
+//	}
+//
+//	public static List<String> getUnwritten() {
+//
+//		return DBController.getUnwritten();
+//	}
+//
+//	public static List<String> getWritten() {
+//
+//		return DBController.getWritten();
+//	}
+//
+//	public static List<String> getInGroup() {
+//
+//		return DBController.getInGroup();
+//	}
+//
+//	public static List<String> getNachzufassen() {
+//
+//		return DBController.getNachzufassen();
+//	}
+//
+//	public static List<String> getGroupSend() {
+//
+//		return DBController.getGroupSend();
+//	}
+//
+//	public static List<String> getVideo() {
+//
+//		return DBController.getVideo();
+//	}
+//
+//	public static List<String> getCustomers() {
+//
+//		return DBController.getCustomers();
+//	}
 
 	public static ArrayList<Person> getPersons4Tab(String id) {
 		
@@ -99,19 +99,30 @@ public class App {
 		
 		// Messages
 		List rawMessages = DBController.getMessages(person.getThread_path());
-		if(rawMessages == null) System.out.println(person.getTitle() + " hat keine Messages");
-		Object[] objectArray2 = (Object[]) rawMessages.get(0);
+		if(rawMessages == null || rawMessages.size() == 0) {
+			
+//			System.out.println(person.getTitle() + " hat keine Messages oder mehr als 1 Ergebnis");
+			return person;
+		}
 		
 		ArrayList<Message> messages = new ArrayList<>();
-		for(int i = 0 ; i < objectArray2.length ; i++) {
+		for(int i = 0 ; i < rawMessages.size() ; i++) {
 			
+			Object[] objectArray2 = (Object[]) rawMessages.get(i);
 			Message message = new Message();
 			message.setContent((String) objectArray2[1]);
 			message.setSender_name((String) objectArray2[2]);
 			message.setTimestamp_ms((long) objectArray2[3]);
+			
+			messages.add(message);
 		}
 		
 		person.setMessages(messages);
+		
+		if(person.getMessages().size() == 0) {
+			
+			System.err.println(person.getTitle() + "'s Nachrichten wurden eingelesen aber jetzt steht da nix");
+		}
 		
 		return person;
 	}

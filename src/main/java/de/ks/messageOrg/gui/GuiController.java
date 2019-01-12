@@ -13,16 +13,16 @@ import helpers.H;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.scene.*;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 @SuppressWarnings("restriction")
 public class GuiController {
 	
 	private static Scene mainScene;
-	private static VBox vBoxGruppe_verschickt;
-	private static VBox vBoxIn_Gruppe;
 	private static VBox vBoxKunden;
 	private static VBox vBoxAlle;
 	private static VBox currentVBox = (VBox) vBoxAlle;
@@ -61,20 +61,20 @@ public class GuiController {
 		 * DIE VERSCHIEDENEN TABS
 		 * 
 		 */
-		String name;
-		
-		name = "unwritten";
-		VBox vBoxUnangeschriebene = (VBox) scene.lookup("#" + name);
-
-		VBox vBoxAngeschriebene = (VBox) scene.lookup("#written");
-		
-		vBoxGruppe_verschickt = (VBox) scene.lookup("#group_send");
-		
-		vBoxIn_Gruppe = (VBox) scene.lookup("#in_group");
-		
-		VBox vBoxNachfassen = (VBox) scene.lookup("#Nachfassen");
-
-		VBox vBoxVideo = (VBox) scene.lookup("#Video");
+//		String name;
+//		
+//		name = "unwritten";
+//		VBox vBoxUnangeschriebene = (VBox) scene.lookup("#" + name);
+//
+//		VBox vBoxAngeschriebene = (VBox) scene.lookup("#written");
+//		
+//		VBox vBoxGruppe_verschickt = (VBox) scene.lookup("#group_send");
+//		
+//		VBox vBoxIn_Gruppe = (VBox) scene.lookup("#in_group");
+//		
+//		VBox vBoxNachfassen = (VBox) scene.lookup("#Nachfassen");
+//
+//		VBox vBoxVideo = (VBox) scene.lookup("#Video");
 		
 		vBoxKunden = (VBox) scene.lookup("#Kunden");
 		
@@ -84,7 +84,8 @@ public class GuiController {
 //		vBoxAlt = (VBox) scene.lookup("#alt");
 //		MainApp.showOld(vBoxAlt);
 		
-		vBoxAlle = (VBox) scene.lookup("#Alle");
+		vBoxAlle = (VBox) scene.lookup("#Persons");
+		currentVBox = vBoxAlle;
 		currentUserList = currentVBox.getChildren();
 		
 		loadCurrentList();
@@ -95,11 +96,12 @@ public class GuiController {
 		 * 
 		 */
 		TextField searchField = (TextField) toolbar.getItems().get(2);
+		if(!searchField.getId().equals("searchField")) System.err.println("Das war nicht searchField");
 		
 		Button search = (Button) toolbar.getItems().get(3);
-		String name1 = searchField.getText();
 		search.setOnAction(e -> {
 			
+			String name1 = searchField.getText();
 			if(!App.search(name1)) {
 				
 				Alert errorAlert = new Alert(Alert.AlertType.ERROR);
@@ -125,6 +127,7 @@ public class GuiController {
 		
 		ArrayList<Person> persons = App.getPersons4Tab(currentVBox.getId());
 		addToVBox(currentUserList, persons);
+		refreshAnzeige();
 	}
 	
 	public static void initPersonWindow(Scene scene, Person person) {
